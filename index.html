@@ -207,6 +207,47 @@ h1.s-h{font-size:clamp(30px,9.4vw,36px);font-weight:800;letter-spacing:-.03em;li
   *,*::before,*::after{animation:none!important;transition:none!important}
   .mark path{stroke-dashoffset:0}
 }
+/* link per mestiere */
+.share{margin-top:22px;display:grid;gap:8px}
+.sharebox{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px;max-width:520px}
+.sharebox code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:13px;user-select:all;scrollbar-width:none}
+.sharebox code::-webkit-scrollbar{display:none}
+@media (max-width:860px){.share{order:7;margin-top:0}}
+/* ottimizzazione smartphone */
+html{-webkit-text-size-adjust:100%}
+button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number]{font-size:16px}
+.strip{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+@media (max-width:860px){
+  .pitch>div:first-child{display:contents}
+  .eyebrow{order:1;justify-self:start;margin:0}
+  h1.big{order:2}
+  .phonewrap{order:3}
+  .lead{order:4;margin-top:0}
+  .ticks{order:5;margin-top:0}
+  .cta{order:6;margin-top:0}
+  .pitch{padding-block:8px 24px;gap:20px}
+}
+@media (max-width:560px){
+  .blobs i{filter:blur(56px)}
+  .top{flex-direction:column;align-items:stretch;gap:12px;padding-block:14px 6px}
+  .logo{align-self:flex-start}
+  .seg{width:100%;backdrop-filter:none}
+  .seg button{flex:1;padding:11px 6px;font-size:13px}
+  .tchip{padding:11px 16px;min-height:44px}
+  h1.big{font-size:clamp(32px,10vw,42px)}
+  .lead{font-size:16px}
+  .cta .btn{width:100%}
+  .cta .small{width:100%;text-align:center}
+  .btn{min-height:46px}
+  .btn.sm{min-height:44px;padding:8px 14px}
+  .eyebrow{backdrop-filter:none}
+  .box{padding:16px;border-radius:18px}
+  .panel{padding:22px;margin:20px auto;backdrop-filter:none}
+  .swatches label{width:42px;height:42px}
+  .screen{padding:20px 16px}
+  .admhead{padding-block:8px}
+}
 </style>
 <style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
 </head>
@@ -283,6 +324,14 @@ function load(){
   return seed();
 }
 var S=load();
+function hashTrade(){
+  var h=(location.hash||'').replace('#','').toLowerCase();
+  if(!h){var m=/[?&]m=([a-z]+)/.exec(location.search||''); h=m?m[1]:'';}
+  for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===h) return h;
+  return null;
+}
+var LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
+function linkFor(k){return location.href.split('#')[0].split('?')[0]+'#'+k;}
 function save(){var s=JSON.stringify(S); mem=s; try{localStorage.setItem(KEY,s);}catch(e){}}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function pad(n){return String(n).padStart(2,'0');}
@@ -328,8 +377,9 @@ function top(){
   var h='<header class="top wrap"><button class="logo" data-act="home" aria-label="Vai alla home">'+LOGO+'tessera</button>'+
     '<div class="seg" role="group" aria-label="Vista">'+
     '<button data-act="mode" data-m="cliente" aria-pressed="'+(S.mode==='cliente')+'">Cosa vede il cliente</button>'+
-    '<button data-act="mode" data-m="admin" aria-pressed="'+(S.mode==='admin')+'">Cosa fa il titolare</button></div></header>'+
-    '<div class="wrap"><p class="proposta">Proponi la card a</p><div class="strip" role="group" aria-label="Mestiere">';
+    '<button data-act="mode" data-m="admin" aria-pressed="'+(S.mode==='admin')+'">Cosa fa il titolare</button></div></header>';
+  if(LOCK) return h;
+  h+='<div class="wrap"><p class="proposta">Proponi la card a</p><div class="strip" role="group" aria-label="Mestiere">';
   TRADES.forEach(function(t){
     h+='<button class="tchip" data-act="trade" data-k="'+t.k+'" aria-pressed="'+(t.k===S.trade)+'">'+ico(t.ico)+esc(t.label)+'</button>';
   });
@@ -366,6 +416,11 @@ function screenCard(b){
     '<p class="small c in" style="--i:3">Mancano '+(b.slots-u.pts)+' tasselli al premio.</p>');
 }
 
+function share(t){
+  if(LOCK) return '';
+  return '<div class="share in" style="--i:9"><span class="small">Link da inviare a un '+esc(t.label.toLowerCase())+'</span>'+
+    '<div class="sharebox"><code id="lk">'+esc(linkFor(t.k))+'</code><button class="btn sm primary" data-act="copy">Copia link</button></div></div>';
+}
 function pitch(b,t){
   var inner;
   if(S.view==='register'||S.view==='login') inner=screenAuth(b);
@@ -377,7 +432,7 @@ function pitch(b,t){
     '<h1 class="big">'+h1+'</h1>'+
     '<p class="lead in" style="--i:6">Una card fedeltà digitale con il nome di <b>'+esc(b.name)+'</b>. Niente tessera di carta da perdere, niente app da installare.</p>'+
     '<ul class="ticks in" style="--i:7"><li>Il cliente si registra una volta sola, dal telefono.</li><li>Tu aggiungi i tasselli dal pannello, con un tocco.</li><li>Scegli tu premio, colori e numero di tasselli.</li></ul>'+
-    '<div class="cta in" style="--i:8"><button class="btn primary" data-act="mode" data-m="admin">Vedi il pannello del titolare</button><span class="small">Intanto prova la card nel telefono.</span></div></div>'+
+    '<div class="cta in" style="--i:8"><button class="btn primary" data-act="mode" data-m="admin">Vedi il pannello del titolare</button><span class="small">Intanto prova la card nel telefono.</span></div>'+share(t)+'</div>'+
     '<div class="phonewrap in" style="--i:2"><div class="phone"><div class="notch"></div><div class="screen">'+inner+'</div></div></div></section>';
 }
 
@@ -434,8 +489,8 @@ function render(fresh,center){
   app.className=fresh?'':'still';
   app.innerHTML=top()+'<main class="wrap">'+(S.mode==='admin'?admin(b,t):pitch(b,t))+'</main>';
   var strip=document.querySelector('.strip');
-  strip.scrollLeft=sl;
-  if(center){var c=strip.querySelector('[aria-pressed="true"]'); if(c) strip.scrollTo({left:c.offsetLeft-strip.clientWidth/2+c.offsetWidth/2,behavior:'smooth'});}
+  if(strip){strip.scrollLeft=sl;
+  if(center){var c=strip.querySelector('[aria-pressed="true"]'); if(c) strip.scrollTo({left:c.offsetLeft-strip.clientWidth/2+c.offsetWidth/2,behavior:'smooth'});}}
   if(!fresh) window.scrollTo(0,sy);
   if(S.mode!=='admin'&&S.view==='landing') startDemo();
 }
@@ -443,6 +498,12 @@ function render(fresh,center){
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-act]'); if(!t) return;
   var a=t.getAttribute('data-act'), b=B(), fresh=true, center=false;
+  if(a==='copy'){
+    var url=linkFor(S.trade), done=function(){toast('Link copiato');}, fallback=function(){
+      var n=document.getElementById('lk'); if(n){var r=document.createRange(); r.selectNodeContents(n); var g=window.getSelection(); g.removeAllRanges(); g.addRange(r);} toast('Tieni premuto sul link per copiarlo');};
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,fallback); else fallback(); }catch(err){fallback();}
+    return;
+  }
   if(a==='trade'){S.trade=t.getAttribute('data-k');S.session=null;S.view='landing';adminOK=false;authErr='';center=true;}
   else if(a==='mode'){S.mode=t.getAttribute('data-m');authErr='';}
   else if(a==='auth'){S.mode='cliente';authMode=t.getAttribute('data-m');S.view=authMode;authErr='';}
@@ -505,6 +566,10 @@ document.addEventListener('pointermove',function(e){
 document.addEventListener('pointerout',function(e){
   var t=e.target.closest&&e.target.closest('.tilt');
   if(t&&!t.contains(e.relatedTarget)){t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');t.classList.remove('hot');}
+});
+window.addEventListener('hashchange',function(){
+  LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
+  S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
 });
 render(true);
 })();
