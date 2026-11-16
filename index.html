@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3347ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tessera">
 <title>Tessera Fedeltà</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,13 +53,13 @@ button,input{font:inherit;color:inherit}
 .strip{position:relative;display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none;scroll-snap-type:x proximity}
 .strip::-webkit-scrollbar{display:none}
 .tchip{flex:none;scroll-snap-align:start;display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:99px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);cursor:pointer;font-weight:500;font-size:14px;transition:transform .15s,background .2s}
-.tchip:hover{transform:translateY(-1px)}
 .tchip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px -10px var(--brand)}
 
 /* pulsanti, campi */
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 22px;cursor:pointer;font-weight:600;transition:transform .15s,box-shadow .15s}
-.btn:hover{transform:translateY(-1px)}
+@media (hover:hover){.tchip:hover,.btn:hover:not(:disabled){transform:translateY(-1px)}}
+.btn:active,.tchip:active,.seg button:active{transform:scale(.97)}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 10px 24px -12px var(--brand)}
 .btn.sm{padding:7px 13px;font-size:14px;border-radius:10px}
 .btn.block{width:100%}
@@ -248,6 +252,23 @@ button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipula
   .screen{padding:20px 16px}
   .admhead{padding-block:8px}
 }
+/* smartphone: barra in basso a portata di pollice, meno scorrimento, sfondo leggero */
+@media (max-width:560px){
+  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .top{flex-direction:row;align-items:center;padding-block:12px 4px}
+  .seg{position:fixed;left:0;right:0;bottom:0;z-index:15;width:auto;border-radius:0;border:0;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;background:color-mix(in srgb,var(--surface) 96%,transparent)}
+  .seg button{min-height:48px;border-radius:12px;font-size:14px;font-weight:600}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  h1.big{font-size:clamp(28px,8.6vw,34px)}
+  .s-lead{display:none}
+  .screen{gap:12px}
+  .pitch{gap:14px;padding-block:4px 20px}
+  .proposta{margin:2px 0 6px}
+  .strip{padding-bottom:8px}
+  .blobs i{filter:none}
+  .blobs i:nth-child(1){background:radial-gradient(closest-side,var(--brand),transparent)}
+  .blobs i:nth-child(2){background:radial-gradient(closest-side,var(--coral),transparent)}
+}
 </style>
 <style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
 </head>
@@ -260,6 +281,7 @@ button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipula
 <script>
 (function(){
 var KEY='tessera-bozza-v3', mem=null, PIN='1234', adminOK=false, authMode='register', authErr='', timer=null;
+var HOVER=!!(window.matchMedia&&window.matchMedia('(hover:hover)').matches);
 var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 var THEMES={
@@ -514,6 +536,7 @@ document.addEventListener('click',function(e){
     var em=t.getAttribute('data-e'), u=null;
     b.users.forEach(function(x){if(x.email===em)u=x;});
     if(!u) return;
+    try{if(navigator.vibrate&&(a==='plus'||a==='minus')) navigator.vibrate(12);}catch(err){}
     if(a==='plus') u.pts=Math.min(b.slots,u.pts+1);
     if(a==='minus') u.pts=Math.max(0,u.pts-1);
     if(a==='reset'){u.pts=0;toast('Card azzerata per '+u.name);}
@@ -554,7 +577,7 @@ document.addEventListener('submit',function(e){
 });
 
 document.addEventListener('pointermove',function(e){
-  if(REDUCED) return;
+  if(REDUCED||!HOVER) return;
   var t=e.target.closest&&e.target.closest('.tilt'); if(!t) return;
   var r=t.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
   t.style.setProperty('--ry',((x-.5)*16).toFixed(2)+'deg');
