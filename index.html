@@ -8,6 +8,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Tessera">
 <title>Tessera Fedeltà</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&display=swap">
@@ -318,6 +321,23 @@ button.qr::after{content:"";position:absolute;right:5px;bottom:5px;width:22px;he
 .qrbig code{font-size:20px;font-weight:700;letter-spacing:.12em}
 .qrbig p{margin:0;font-size:14px;color:rgba(255,255,255,.72)}
 @media (prefers-reduced-motion:reduce){.vf .fr2::after{animation:none;top:50%}}
+/* installazione come app */
+.instbtn{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px}
+.instbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sheetbg{position:fixed;inset:0;z-index:80;background:rgba(7,9,18,.72);display:flex;align-items:flex-end;justify-content:center;animation:qrin .2s ease-out}
+.sheet{width:100%;max-width:480px;background:var(--surface);color:var(--fg);border-radius:24px 24px 0 0;padding:20px 20px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 60px -20px rgba(0,0,0,.5);animation:sheetup .28s cubic-bezier(.2,.9,.3,1)}
+@keyframes sheetup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheet h3{margin:0 0 4px;font-family:var(--font-display);font-size:21px;letter-spacing:-.02em}
+.sheet .sub{margin:0 0 14px;font-size:14px;color:var(--muted)}
+.sheet ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px;counter-reset:st}
+.sheet li{counter-increment:st;display:flex;gap:12px;align-items:center;font-size:15px;line-height:1.35}
+.sheet li::before{content:counter(st);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;font-weight:700;font-size:14px}
+.sheet li span{min-width:0}
+.sheet li svg{width:20px;height:20px;vertical-align:-4px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media (display-mode:standalone){.share,.instbtn{display:none!important}}
+html{overscroll-behavior-y:none}
+body{-webkit-touch-callout:none}
+input,code,.qrbox code{-webkit-touch-callout:default}
 </style>
 
 <div class="blobs" aria-hidden="true"><i></i><i></i></div>
@@ -598,6 +618,7 @@ function screenCard(b){
   return '<div class="pagehead in"><div><h2>Ciao '+esc(u.name.split(' ')[0])+'</h2><p class="small">La tua card fedeltà</p></div><button class="btn sm" data-act="logout">Esci</button></div>'+
     '<div class="in" style="--i:2">'+cardHtml(b,u.name,u.pts,m.i+1,false)+'</div>'+
     '<div class="qrbox in" style="--i:3"><button type="button" class="qr" data-qr="open" data-code="'+esc(u.code)+'" aria-label="Ingrandisci il QR">'+QR.svg(u.code)+'</button><div><b>Il tuo QR</b><p>Tocca il QR per ingrandirlo, poi mostralo alla cassa: il titolare lo inquadra e il tassello si aggiunge da solo.</p><code>'+esc(u.code)+'</code></div></div>'+
+    (isStandalone()?'':'<button class="btn block instbtn in" style="--i:4" data-inst="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>Aggiungi la card alla Home</button>')+
     (full?'<p class="done in" style="--i:3"><b>Card completa.</b> Mostra questa schermata al titolare per ritirare il premio.</p>':
     '<p class="small c in" style="--i:3">Mancano '+(b.slots-u.pts)+' tasselli al premio.</p>');
 }
@@ -755,6 +776,57 @@ function closeQr(){if(qrBig){qrBig.remove();qrBig=null;}}
 document.addEventListener('click',function(e){var t=e.target.closest('[data-qr]'); if(t&&!qrBig) openQr(t.getAttribute('data-code'));});
 document.addEventListener('keydown',function(e){if(e.key==='Escape') closeQr();});
 
+/* PWA: installazione, manifest per attività, service worker */
+var deferredInstall=null, manKey='', manUrl=null;
+function isStandalone(){try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(e){return false;}}
+function absUrl(p){try{return new URL(p,location.href).href;}catch(e){return p;}}
+function pwaMeta(){
+  try{
+    var b=B(), th=THEMES[b.theme]||THEMES.cobalto, name=LOCK?b.name:'Tessera Fedeltà';
+    var key=[S.trade,b.name,b.theme,LOCK].join('|'); if(key===manKey) return; manKey=key;
+    document.title=LOCK?(b.name+' · Card fedeltà'):'Tessera Fedeltà';
+    var at=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(at) at.setAttribute('content',name.slice(0,30));
+    var tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content',th.b);
+    var link=document.querySelector('link[rel="manifest"]'); if(!link||location.protocol==='file:'||location.protocol==='blob:') return;
+    var base=location.href.split('#')[0].split('?')[0];
+    var man={name:name+(LOCK?' · Card fedeltà':''),short_name:name.slice(0,12),description:'La tua card fedeltà digitale',
+      start_url:base+(LOCK?'#'+S.trade:''),scope:base.replace(/[^\/]*$/,''),display:'standalone',orientation:'portrait',
+      background_color:'#eef0f6',theme_color:th.b,lang:'it',
+      icons:[{src:absUrl('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:absUrl('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
+    var u=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));
+    link.setAttribute('href',u); if(manUrl) URL.revokeObjectURL(manUrl); manUrl=u;
+  }catch(e){}
+}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault(); deferredInstall=e;});
+window.addEventListener('appinstalled',function(){deferredInstall=null; closeSheet(); toast('Card aggiunta alla Home');});
+var sheetEl=null;
+function closeSheet(){if(sheetEl){sheetEl.remove(); sheetEl=null;}}
+function openSheet(html){
+  closeSheet();
+  sheetEl=document.createElement('div'); sheetEl.className='sheetbg'; sheetEl.setAttribute('role','dialog');
+  sheetEl.innerHTML='<div class="sheet">'+html+'<button class="btn block" data-inst="close">Chiudi</button></div>';
+  sheetEl.addEventListener('click',function(e){if(e.target===sheetEl) closeSheet();});
+  document.body.appendChild(sheetEl);
+}
+function installFlow(){
+  if(deferredInstall){
+    var d=deferredInstall; deferredInstall=null;
+    try{d.prompt(); if(d.userChoice) d.userChoice.then(function(r){if(r&&r.outcome==='accepted') toast('Installazione avviata');});}catch(e){}
+    return;
+  }
+  var ua=navigator.userAgent||'', ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
+  var SH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg>';
+  var DOTS='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>';
+  if(ios) openSheet('<h3>Aggiungi la card alla Home</h3><p class="sub">Così la apri con un tocco, come un\'app.</p><ol><li><span>Tocca il pulsante Condividi '+SH+' in basso (o in alto nel browser)</span></li><li><span>Scorri e scegli <b>Aggiungi alla schermata Home</b></span></li><li><span>Tocca <b>Aggiungi</b>: l\'icona è pronta</span></li></ol>');
+  else openSheet('<h3>Aggiungi la card alla Home</h3><p class="sub">Così la apri con un tocco, come un\'app.</p><ol><li><span>Apri il menu del browser '+DOTS+'</span></li><li><span>Scegli <b>Installa app</b> oppure <b>Aggiungi a schermata Home</b></span></li><li><span>Conferma: l\'icona è pronta</span></li></ol>');
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-inst]'); if(!t) return;
+  if(t.getAttribute('data-inst')==='open') installFlow(); else closeSheet();
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape') closeSheet();});
+try{ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});}); }catch(e){}
+
 function stopDemo(){if(timer){clearInterval(timer);timer=null;}}
 function startDemo(){
   stopDemo(); if(REDUCED) return;
@@ -773,6 +845,7 @@ function render(fresh,center){
   var b=B(), t=T(), th=THEMES[b.theme]||THEMES.cobalto;
   var root=document.documentElement;
   root.style.setProperty('--brand',th.b); root.style.setProperty('--coral',th.g);
+  pwaMeta();
   var oldStrip=document.querySelector('.strip'), sl=oldStrip?oldStrip.scrollLeft:0, sy=window.scrollY;
   var app=document.getElementById('app');
   app.className=fresh?'':'still';
@@ -858,7 +931,7 @@ document.addEventListener('pointerout',function(e){
   if(t&&!t.contains(e.relatedTarget)){t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');t.classList.remove('hot');}
 });
 window.addEventListener('hashchange',function(){
-  closeScan(); closeQr();
+  closeScan(); closeQr(); closeSheet();
   LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
   S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
 });
