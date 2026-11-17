@@ -308,6 +308,15 @@ button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipula
 .scan .demo{width:100%;max-width:440px;margin:0 auto;display:grid;gap:8px}
 .scan .demo span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.6)}
 .scan .chips{display:flex;flex-wrap:wrap;gap:8px}
+button.qr{border:0;padding:0;background:#fff;cursor:zoom-in;position:relative;display:block}
+button.qr::after{content:"";position:absolute;right:5px;bottom:5px;width:22px;height:22px;border-radius:50%;background:rgba(16,19,31,.82) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7'/%3E%3C/svg%3E") center/12px no-repeat}
+.qrbig{position:fixed;inset:0;z-index:70;background:#070912;display:grid;place-items:center;align-content:center;gap:18px;text-align:center;color:#fff;cursor:zoom-out;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));animation:qrin .22s ease-out}
+@keyframes qrin{from{opacity:0}to{opacity:1}}
+.qrbig .sq{width:min(86vw,62vh,460px);aspect-ratio:1;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.7)}
+.qrbig .sq svg{display:block;width:100%;height:100%}
+.qrbig code{font-size:20px;font-weight:700;letter-spacing:.12em}
+.qrbig p{margin:0;font-size:14px;color:rgba(255,255,255,.72)}
 @media (prefers-reduced-motion:reduce){.vf .fr2::after{animation:none;top:50%}}
 </style>
 
@@ -588,7 +597,7 @@ function screenCard(b){
   var u=m.u, full=u.pts>=b.slots;
   return '<div class="pagehead in"><div><h2>Ciao '+esc(u.name.split(' ')[0])+'</h2><p class="small">La tua card fedeltà</p></div><button class="btn sm" data-act="logout">Esci</button></div>'+
     '<div class="in" style="--i:2">'+cardHtml(b,u.name,u.pts,m.i+1,false)+'</div>'+
-    '<div class="qrbox in" style="--i:3"><div class="qr">'+QR.svg(u.code)+'</div><div><b>Il tuo QR</b><p>Mostralo alla cassa: il titolare lo inquadra e il tassello si aggiunge da solo.</p><code>'+esc(u.code)+'</code></div></div>'+
+    '<div class="qrbox in" style="--i:3"><button type="button" class="qr" data-qr="open" data-code="'+esc(u.code)+'" aria-label="Ingrandisci il QR">'+QR.svg(u.code)+'</button><div><b>Il tuo QR</b><p>Tocca il QR per ingrandirlo, poi mostralo alla cassa: il titolare lo inquadra e il tassello si aggiunge da solo.</p><code>'+esc(u.code)+'</code></div></div>'+
     (full?'<p class="done in" style="--i:3"><b>Card completa.</b> Mostra questa schermata al titolare per ritirare il premio.</p>':
     '<p class="small c in" style="--i:3">Mancano '+(b.slots-u.pts)+' tasselli al premio.</p>');
 }
@@ -734,6 +743,18 @@ document.addEventListener('submit',function(e){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&scanEl) closeScan();});
 
+var qrBig=null;
+function openQr(code){
+  closeQr();
+  qrBig=document.createElement('div'); qrBig.className='qrbig'; qrBig.setAttribute('role','dialog'); qrBig.setAttribute('aria-label','QR ingrandito');
+  qrBig.innerHTML='<div class="sq">'+QR.svg(code)+'</div><code>'+esc(code)+'</code><p>Tocca per chiudere</p>';
+  qrBig.addEventListener('click',closeQr);
+  document.body.appendChild(qrBig);
+}
+function closeQr(){if(qrBig){qrBig.remove();qrBig=null;}}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-qr]'); if(t&&!qrBig) openQr(t.getAttribute('data-code'));});
+document.addEventListener('keydown',function(e){if(e.key==='Escape') closeQr();});
+
 function stopDemo(){if(timer){clearInterval(timer);timer=null;}}
 function startDemo(){
   stopDemo(); if(REDUCED) return;
@@ -837,7 +858,7 @@ document.addEventListener('pointerout',function(e){
   if(t&&!t.contains(e.relatedTarget)){t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');t.classList.remove('hot');}
 });
 window.addEventListener('hashchange',function(){
-  closeScan();
+  closeScan(); closeQr();
   LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
   S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
 });
