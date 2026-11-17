@@ -269,6 +269,46 @@ button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipula
   .blobs i:nth-child(1){background:radial-gradient(closest-side,var(--brand),transparent)}
   .blobs i:nth-child(2){background:radial-gradient(closest-side,var(--coral),transparent)}
 }
+/* QR della card + lettore */
+.qrbox{display:flex;gap:14px;align-items:center;margin-top:16px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.qrbox .qr{flex:none;width:118px;height:118px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(16,19,31,.12)}
+.qrbox .qr svg{display:block;width:100%;height:100%}
+.qrbox b{font-family:var(--font-display);font-size:16px;letter-spacing:-.01em}
+.qrbox p{margin:4px 0 8px;font-size:13px;line-height:1.4;color:var(--muted)}
+.qrbox code{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.08em;padding:4px 9px;border-radius:8px;background:color-mix(in srgb,var(--brand) 10%,var(--surface));user-select:all}
+.scanbtn{display:flex;align-items:center;justify-content:center;gap:10px}
+.scanbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.scan{position:fixed;inset:0;z-index:60;background:#070912;color:#fff;display:flex;flex-direction:column;gap:14px;overflow-y:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(18px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));-webkit-overflow-scrolling:touch}
+.scan .sbar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;max-width:440px;margin:0 auto}
+.scan .sbar b{font-family:var(--font-display);font-size:20px;letter-spacing:-.02em}
+.scan .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
+.scan .btn.primary{background:var(--brand);border-color:var(--brand)}
+.vf{position:relative;width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;border-radius:24px;overflow:hidden;background:#0d1020;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.vf video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.vf .fr2{position:absolute;inset:16%;pointer-events:none;border-radius:18px;
+  background:linear-gradient(var(--brand),var(--brand)) top left/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) top left/4px 36px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) top right/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) top right/4px 36px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) bottom left/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom left/4px 36px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) bottom right/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom right/4px 36px no-repeat}
+.vf .fr2::after{content:"";position:absolute;left:6%;right:6%;height:2px;border-radius:2px;background:var(--brand);box-shadow:0 0 14px var(--brand);animation:scanline 2.2s ease-in-out infinite}
+@keyframes scanline{0%,100%{top:8%}50%{top:90%}}
+.vf .smsg{position:absolute;left:12px;right:12px;bottom:12px;padding:9px 12px;border-radius:12px;background:rgba(7,9,18,.72);font-size:13px;text-align:center}
+.vf.off .fr2,.vf.off video{display:none}
+.vf.off{aspect-ratio:auto}
+.vf.off .smsg{position:static;margin:0;border-radius:0;background:rgba(255,255,255,.05);padding:16px 14px}
+.sres{width:100%;max-width:440px;margin:0 auto;min-height:64px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);font-size:14px;display:flex;align-items:center;gap:12px}
+.sres.ok{background:rgba(22,163,74,.2);border-color:rgba(74,222,128,.55)}
+.sres.bad{background:rgba(220,38,38,.2);border-color:rgba(248,113,113,.55)}
+.sres b{display:block;font-size:16px}
+.sres .tick{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14);font-size:18px}
+.scan form{display:flex;gap:8px;width:100%;max-width:440px;margin:0 auto}
+.scan input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;text-transform:uppercase;letter-spacing:.05em}
+.scan input::placeholder{color:rgba(255,255,255,.5);text-transform:none;letter-spacing:0}
+.scan .demo{width:100%;max-width:440px;margin:0 auto;display:grid;gap:8px}
+.scan .demo span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.scan .chips{display:flex;flex-wrap:wrap;gap:8px}
+@media (prefers-reduced-motion:reduce){.vf .fr2::after{animation:none;top:50%}}
 </style>
 
 <div class="blobs" aria-hidden="true"><i></i><i></i></div>
@@ -331,15 +371,17 @@ var TRADES=[
  {k:'kebab',label:'Kebab',ico:'wrap',name:'Kebab Istanbul',pitch:'Dal kebab al cliente fisso.',words:'Il decimo kebab lo offriamo noi.',mark:'decimo',lead:'Al banco o da asporto: un tassello a ogni kebab. Quando la card è piena, il prossimo è gratis.',reward:'Kebab in omaggio',slots:8,theme:'ambra'},
  {k:'toelettatura',label:'Toelettatura',ico:'paw',name:'Zampa Felice',pitch:'Dal bagnetto al cliente fisso.',words:'Ogni coccola vale un tassello.',mark:'coccola',lead:'Il tuo amico a quattro zampe merita un premio. Un tassello a ogni visita.',reward:'Un bagnetto in omaggio',slots:8,theme:'prugna'}
 ];
+var CODE_AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function mkCode(){var c='TS-';for(var i=0;i<8;i++)c+=CODE_AL.charAt(Math.floor(Math.random()*CODE_AL.length));return c;}
 var PEOPLE=[['Giulia Rossi','giulia@esempio.it'],['Marco Bianchi','marco@esempio.it'],['Elena Conti','elena@esempio.it']];
 function tradeOf(k){for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===k) return TRADES[i]; return TRADES[0];}
 function seed(){
   var d={};
   TRADES.forEach(function(t){
     d[t.k]={name:t.name,reward:t.reward,slots:t.slots,theme:t.theme,users:[
-      {name:PEOPLE[0][0],email:PEOPLE[0][1],pw:'demo',pts:Math.round(t.slots*.6)},
-      {name:PEOPLE[1][0],email:PEOPLE[1][1],pw:'demo',pts:t.slots},
-      {name:PEOPLE[2][0],email:PEOPLE[2][1],pw:'demo',pts:Math.max(1,Math.round(t.slots*.3))}]};
+      {name:PEOPLE[0][0],email:PEOPLE[0][1],pw:'demo',code:mkCode(),pts:Math.round(t.slots*.6)},
+      {name:PEOPLE[1][0],email:PEOPLE[1][1],pw:'demo',code:mkCode(),pts:t.slots},
+      {name:PEOPLE[2][0],email:PEOPLE[2][1],pw:'demo',code:mkCode(),pts:Math.max(1,Math.round(t.slots*.3))}]};
   });
   return {trade:'barbiere',mode:'cliente',view:'landing',session:null,d:d};
 }
@@ -350,6 +392,7 @@ function load(){
   var f=seed(); if(!o) return f;
   if(!o.d) o.d={};
   for(var k in f.d) if(!o.d[k]) o.d[k]=f.d[k];
+  for(var k2 in o.d){var us=o.d[k2].users||[]; for(var j=0;j<us.length;j++) if(!us[j].code) us[j].code=mkCode();}
   return o;
 }
 var S=load();
@@ -370,6 +413,89 @@ function me(){var b=B(); for(var i=0;i<b.users.length;i++) if(b.users[i].email==
 function toast(m){var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('show');},2000);}
 function ico(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONS[k]+'</svg>';}
 
+/* Generatore QR minimale (byte mode, correzione M, versioni 1-4) */
+var QR=(function(){
+  var EXP=new Array(512),LOG=new Array(256),i,x=1;
+  for(i=0;i<255;i++){EXP[i]=x;LOG[x]=i;x<<=1;if(x&256)x^=0x11d;}
+  for(i=255;i<512;i++)EXP[i]=EXP[i-255];
+  function gmul(a,b){return (a&&b)?EXP[LOG[a]+LOG[b]]:0;}
+  function rsGen(n){var g=[1];for(var k=0;k<n;k++){var ng=new Array(g.length+1).fill(0);for(var j=0;j<g.length;j++){ng[j]^=g[j];ng[j+1]^=gmul(g[j],EXP[k]);}g=ng;}return g;}
+  function rsEc(data,n){var g=rsGen(n),r=new Array(n).fill(0);for(var k=0;k<data.length;k++){var f=data[k]^r[0];r.shift();r.push(0);if(f)for(var j=0;j<n;j++)r[j]^=gmul(g[j+1],f);}return r;}
+  var VER=[null,{d:16,e:10,b:1,al:[]},{d:28,e:16,b:1,al:[6,18]},{d:44,e:26,b:1,al:[6,22]},{d:64,e:18,b:2,al:[6,26]}];
+  function make(text){
+    var bytes=[];for(var c=0;c<text.length;c++){var cc=text.charCodeAt(c);if(cc<128)bytes.push(cc);else{var u=unescape(encodeURIComponent(text.charAt(c)));for(var q=0;q<u.length;q++)bytes.push(u.charCodeAt(q));}}
+    var v=0;for(var t=1;t<=4;t++){if(bytes.length<=VER[t].d-2){v=t;break;}}
+    if(!v)return null;
+    var V=VER[v],bits=[];
+    function put(val,len){for(var k=len-1;k>=0;k--)bits.push((val>>k)&1);}
+    put(4,4);put(bytes.length,8);bytes.forEach(function(b){put(b,8);});
+    var cap=V.d*8;put(0,Math.min(4,cap-bits.length));while(bits.length%8)bits.push(0);
+    var cw=[];for(var p=0;p<bits.length;p+=8){var by=0;for(var k=0;k<8;k++)by=(by<<1)|bits[p+k];cw.push(by);}
+    for(var pad=0;cw.length<V.d;pad++)cw.push(pad%2?0x11:0xEC);
+    var per=V.d/V.b,blocks=[],ecs=[];
+    for(var bk=0;bk<V.b;bk++){var dd=cw.slice(bk*per,(bk+1)*per);blocks.push(dd);ecs.push(rsEc(dd,V.e));}
+    var fin=[];for(var k2=0;k2<per;k2++)blocks.forEach(function(b){fin.push(b[k2]);});
+    for(var k3=0;k3<V.e;k3++)ecs.forEach(function(b){fin.push(b[k3]);});
+    var size=17+4*v,M=[],F=[];
+    for(var y=0;y<size;y++){M.push(new Array(size).fill(false));F.push(new Array(size).fill(false));}
+    function fn(xx,yy,d){M[yy][xx]=d;F[yy][xx]=true;}
+    function finder(cx,cy){for(var dy=-4;dy<=4;dy++)for(var dx=-4;dx<=4;dx++){var xx=cx+dx,yy=cy+dy;if(xx<0||yy<0||xx>=size||yy>=size)continue;var dist=Math.max(Math.abs(dx),Math.abs(dy));fn(xx,yy,dist!==2&&dist!==4);}}
+    finder(3,3);finder(size-4,3);finder(3,size-4);
+    for(var ti=0;ti<size;ti++){if(!F[6][ti])fn(ti,6,ti%2===0);if(!F[ti][6])fn(6,ti,ti%2===0);}
+    var al=V.al;
+    for(var a=0;a<al.length;a++)for(var b2=0;b2<al.length;b2++){
+      if((a===0&&b2===0)||(a===0&&b2===al.length-1)||(a===al.length-1&&b2===0))continue;
+      for(var dy2=-2;dy2<=2;dy2++)for(var dx2=-2;dx2<=2;dx2++)fn(al[a]+dx2,al[b2]+dy2,Math.max(Math.abs(dx2),Math.abs(dy2))!==1);
+    }
+    for(var r1=0;r1<9;r1++){if(!F[r1][8])fn(8,r1,false);if(!F[8][r1])fn(r1,8,false);}
+    for(var r2=0;r2<8;r2++){fn(size-1-r2,8,false);fn(8,size-1-r2,false);}
+    fn(8,size-8,true);
+    var db=[];fin.forEach(function(b){for(var k=7;k>=0;k--)db.push((b>>k)&1);});
+    var di=0;
+    for(var right=size-1;right>=1;right-=2){
+      if(right===6)right=5;
+      for(var vert=0;vert<size;vert++)for(var j=0;j<2;j++){
+        var xx2=right-j,up=((right+1)&2)===0,yy2=up?size-1-vert:vert;
+        if(!F[yy2][xx2]){M[yy2][xx2]=di<db.length?db[di]===1:false;di++;}
+      }
+    }
+    function maskFn(m,xx,yy){switch(m){case 0:return (xx+yy)%2===0;case 1:return yy%2===0;case 2:return xx%3===0;case 3:return (xx+yy)%3===0;case 4:return (Math.floor(xx/3)+Math.floor(yy/2))%2===0;case 5:return xx*yy%2+xx*yy%3===0;case 6:return (xx*yy%2+xx*yy%3)%2===0;default:return ((xx+yy)%2+xx*yy%3)%2===0;}}
+    function build(m){
+      var G=M.map(function(r){return r.slice();});
+      for(var yy=0;yy<size;yy++)for(var xx=0;xx<size;xx++)if(!F[yy][xx]&&maskFn(m,xx,yy))G[yy][xx]=!G[yy][xx];
+      var d=m,rem=d;for(var k=0;k<10;k++)rem=(rem<<1)^((rem>>9)*0x537);
+      var fb=((d<<10)|rem)^0x5412;
+      function bit(k){return ((fb>>k)&1)!==0;}
+      for(var k1=0;k1<=5;k1++)G[k1][8]=bit(k1);
+      G[7][8]=bit(6);G[8][8]=bit(7);G[8][7]=bit(8);
+      for(var k2=9;k2<15;k2++)G[8][14-k2]=bit(k2);
+      for(var k3=0;k3<8;k3++)G[8][size-1-k3]=bit(k3);
+      for(var k4=8;k4<15;k4++)G[size-15+k4][8]=bit(k4);
+      G[size-8][8]=true;
+      return G;
+    }
+    function penalty(G){
+      var s=0,n=size,r,c;
+      for(r=0;r<n;r++){var run=1;for(c=1;c<n;c++){if(G[r][c]===G[r][c-1]){run++;if(run===5)s+=3;else if(run>5)s++;}else run=1;}}
+      for(c=0;c<n;c++){var run2=1;for(r=1;r<n;r++){if(G[r][c]===G[r-1][c]){run2++;if(run2===5)s+=3;else if(run2>5)s++;}else run2=1;}}
+      for(r=0;r<n-1;r++)for(c=0;c<n-1;c++){var v0=G[r][c];if(v0===G[r][c+1]&&v0===G[r+1][c]&&v0===G[r+1][c+1])s+=3;}
+      var dark=0;for(r=0;r<n;r++)for(c=0;c<n;c++)if(G[r][c])dark++;
+      s+=Math.floor(Math.abs(dark*20-n*n*10)/(n*n))*10;
+      return s;
+    }
+    var best=null,bs=1e9;
+    for(var m=0;m<8;m++){var G=build(m),p=penalty(G);if(p<bs){bs=p;best=G;}}
+    return best;
+  }
+  function svg(text,fg,bg){
+    var G=make(text);if(!G)return '';
+    var n=G.length,q=4,d='';
+    for(var y=0;y<n;y++){var x=0;while(x<n){if(G[y][x]){var s=x;while(x<n&&G[y][x])x++;d+='M'+(s+q)+' '+(y+q)+'h'+(x-s)+'v1h-'+(x-s)+'z';}else x++;}}
+    var t=n+2*q;
+    return '<svg viewBox="0 0 '+t+' '+t+'" shape-rendering="crispEdges" role="img" aria-label="QR della card"><rect width="'+t+'" height="'+t+'" fill="'+(bg||'#fff')+'"/><path d="'+d+'" fill="'+(fg||'#10131f')+'"/></svg>';
+  }
+  return {make:make,svg:svg};
+})();
 var STAR='M24 14.5L26.35 20.76L33.04 21.06L27.8 25.24L29.58 31.69L24 28L18.42 31.69L20.2 25.24L14.96 21.06L21.65 20.76Z';
 var STAMP='<svg class="st" viewBox="0 0 48 48" aria-hidden="true"><circle class="d" cx="24" cy="24" r="22"/><circle class="r" cx="24" cy="24" r="17.5"/><path class="s" d="'+STAR+'"/></svg>';
 var CU=0;
@@ -462,6 +588,7 @@ function screenCard(b){
   var u=m.u, full=u.pts>=b.slots;
   return '<div class="pagehead in"><div><h2>Ciao '+esc(u.name.split(' ')[0])+'</h2><p class="small">La tua card fedeltà</p></div><button class="btn sm" data-act="logout">Esci</button></div>'+
     '<div class="in" style="--i:2">'+cardHtml(b,u.name,u.pts,m.i+1,false)+'</div>'+
+    '<div class="qrbox in" style="--i:3"><div class="qr">'+QR.svg(u.code)+'</div><div><b>Il tuo QR</b><p>Mostralo alla cassa: il titolare lo inquadra e il tassello si aggiunge da solo.</p><code>'+esc(u.code)+'</code></div></div>'+
     (full?'<p class="done in" style="--i:3"><b>Card completa.</b> Mostra questa schermata al titolare per ritirare il premio.</p>':
     '<p class="small c in" style="--i:3">Mancano '+(b.slots-u.pts)+' tasselli al premio.</p>');
 }
@@ -506,7 +633,8 @@ function admin(b,t){
   });
   var sw=Object.keys(THEMES).map(function(k,i){var th=THEMES[k];
     return '<input type="radio" name="theme" id="sw'+i+'" value="'+k+'"'+(k===b.theme?' checked':'')+'><label for="sw'+i+'" style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')" title="'+th.n+'"></label>';}).join('');
-  return head+'<div class="admin"><section class="box"><h2>Clienti ('+b.users.length+')</h2>'+(rows||'<p class="small">Nessun cliente registrato.</p>')+
+  return head+'<div class="admin"><section class="box"><h2>Clienti ('+b.users.length+')</h2>'+
+    '<button class="btn primary block scanbtn" data-scan="open" style="margin:4px 0 8px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2M4 12h16"/></svg>Scansiona il QR del cliente</button>'+(rows||'<p class="small">Nessun cliente registrato.</p>')+
     '<p class="small" style="margin-top:12px">Clienti di esempio. Nella versione reale compaiono qui appena si registrano.</p></section>'+
     '<section class="box"><h2>Personalizza</h2><form data-form="settings" novalidate>'+
     '<div class="field"><label for="s-name">Nome attività</label><input id="s-name" name="name" type="text" value="'+esc(b.name)+'"></div>'+
@@ -515,6 +643,96 @@ function admin(b,t){
     '<div class="field"><span class="l">Stile della card</span><div class="swatches">'+sw+'</div></div>'+
     '<button class="btn primary block" type="submit">Salva modifiche</button></form></section></div>';
 }
+
+/* LETTORE QR */
+var scanEl=null, scanStream=null, scanTimer=null, scanDet=null, scanCv=null, scanLast='', scanLastAt=0, scanResT=null;
+function userByCode(code){
+  for(var k in S.d){var us=S.d[k].users; for(var i=0;i<us.length;i++) if(us[i].code===code) return {k:k,u:us[i],b:S.d[k]};}
+  return null;
+}
+function beep(){try{var C=window.AudioContext||window.webkitAudioContext; if(!C) return; var c=new C(), o=c.createOscillator(), g=c.createGain(); o.frequency.value=880; g.gain.value=.08; o.connect(g); g.connect(c.destination); o.start(); setTimeout(function(){o.stop();c.close();},110);}catch(e){}}
+function scanRes(cls,html){
+  var r=document.getElementById('sres'); if(!r) return;
+  r.className='sres '+cls; r.innerHTML=html;
+  clearTimeout(scanResT); scanResT=setTimeout(function(){var q=document.getElementById('sres'); if(q){q.className='sres';q.innerHTML='Pronto per il prossimo cliente.';}},3600);
+}
+function scanApply(raw){
+  var code=String(raw||'').trim().toUpperCase().replace(/\s+/g,'');
+  if(!code) return;
+  var now=Date.now(); if(code===scanLast&&now-scanLastAt<4000) return;
+  scanLast=code; scanLastAt=now;
+  var f=userByCode(code);
+  if(!f){scanRes('bad','<span class="tick">✕</span><div><b>Codice non riconosciuto</b>Controlla e riprova.</div>'); try{navigator.vibrate&&navigator.vibrate([60,40,60]);}catch(e){} return;}
+  if(f.k!==S.trade){scanRes('bad','<span class="tick">✕</span><div><b>Card di un altro locale</b>'+esc(f.b.name)+'</div>'); return;}
+  var b=f.b,u=f.u;
+  if(u.pts>=b.slots){scanRes('ok','<span class="tick">★</span><div><b>'+esc(u.name)+' ha la card completa</b>Consegna il premio: '+esc(b.reward)+'.</div>'); try{navigator.vibrate&&navigator.vibrate(40);}catch(e){} return;}
+  u.pts++; save(); beep();
+  try{navigator.vibrate&&navigator.vibrate([30,40,30]);}catch(e){}
+  var done=u.pts>=b.slots;
+  scanRes('ok','<span class="tick">✓</span><div><b>'+esc(u.name)+'</b>Tassello aggiunto: '+u.pts+' / '+b.slots+(done?' · card completa, premio da consegnare':'')+'</div>');
+  render(false);
+}
+function jsqrReady(cb){
+  if(window.jsQR) return cb(true);
+  var sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
+  sc.onload=function(){cb(!!window.jsQR);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc);
+}
+function scanLoop(){
+  var v=scanEl&&scanEl.querySelector('video'); if(!v||!scanStream) return;
+  var next=function(){scanTimer=setTimeout(scanLoop,140);};
+  if(v.readyState<2||!v.videoWidth) return next();
+  if(scanDet){scanDet.detect(v).then(function(r){if(r&&r[0]) scanApply(r[0].rawValue); next();},next); return;}
+  if(window.jsQR){
+    var w=Math.min(520,v.videoWidth), h=Math.round(v.videoHeight*w/v.videoWidth);
+    if(!scanCv){scanCv=document.createElement('canvas');}
+    scanCv.width=w; scanCv.height=h;
+    var cx=scanCv.getContext('2d',{willReadFrequently:true}); cx.drawImage(v,0,0,w,h);
+    try{var im=cx.getImageData(0,0,w,h), q=window.jsQR(im.data,w,h,{inversionAttempts:'dontInvert'}); if(q&&q.data) scanApply(q.data);}catch(e){}
+  }
+  next();
+}
+function scanMsg(t){var m=document.getElementById('smsg'); if(m) m.textContent=t;}
+function openScan(){
+  if(scanEl) return;
+  var b=B();
+  var chips=b.users.map(function(u){return '<button class="btn sm" type="button" data-scan="demo" data-code="'+esc(u.code)+'">'+esc(u.name.split(' ')[0])+'</button>';}).join('');
+  scanEl=document.createElement('div'); scanEl.className='scan'; scanEl.setAttribute('role','dialog'); scanEl.setAttribute('aria-label','Scansiona il QR del cliente');
+  scanEl.innerHTML='<div class="sbar"><b>Scansiona la card</b><button class="btn sm" data-scan="close">Chiudi</button></div>'+
+    '<div class="vf off" id="vf"><video playsinline muted autoplay></video><div class="fr2"></div><div class="smsg" id="smsg">Avvio fotocamera…</div></div>'+
+    '<div class="sres" id="sres">Inquadra il QR sulla card del cliente.</div>'+
+    '<form data-scanform novalidate><input id="scode" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="Oppure scrivi il codice (TS-…)"><button class="btn primary" type="submit">Aggiungi</button></form>'+
+    '<div class="demo"><span>Prova senza fotocamera: simula la scansione di</span><div class="chips">'+chips+'</div></div>';
+  document.body.appendChild(scanEl);
+  scanLast=''; scanLastAt=0;
+  var md=navigator.mediaDevices;
+  if(!md||!md.getUserMedia){scanMsg('Fotocamera non disponibile qui: usa il codice o la prova qui sotto.'); return;}
+  md.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}).then(function(st){
+    if(!scanEl){st.getTracks().forEach(function(t){t.stop();}); return;}
+    scanStream=st; var v=scanEl.querySelector('video'); v.srcObject=st;
+    var p=v.play(); if(p&&p.catch) p.catch(function(){});
+    document.getElementById('vf').classList.remove('off'); scanMsg('Inquadra il QR del cliente');
+    if(window.BarcodeDetector){try{scanDet=new BarcodeDetector({formats:['qr_code']});}catch(e){scanDet=null;}}
+    if(scanDet) scanLoop();
+    else jsqrReady(function(ok){ if(!scanEl) return; if(ok) scanLoop(); else {document.getElementById('vf').classList.add('off'); scanMsg('Lettore non caricato (serve internet): usa il codice qui sotto.');} });
+  }).catch(function(){scanMsg('Fotocamera non disponibile o negata: usa il codice o la prova qui sotto.');});
+}
+function closeScan(){
+  clearTimeout(scanTimer); clearTimeout(scanResT); scanTimer=null; scanDet=null;
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();}); scanStream=null;}
+  if(scanEl){scanEl.remove(); scanEl=null;}
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-scan]'); if(!t) return;
+  var a=t.getAttribute('data-scan');
+  if(a==='open') openScan();
+  else if(a==='close') closeScan();
+  else if(a==='demo'){scanLast=''; scanApply(t.getAttribute('data-code'));}
+});
+document.addEventListener('submit',function(e){
+  var f=e.target.closest('form[data-scanform]'); if(!f) return;
+  e.preventDefault(); var i=f.querySelector('input'); scanLast=''; scanApply(i.value); i.value='';
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&scanEl) closeScan();});
 
 function stopDemo(){if(timer){clearInterval(timer);timer=null;}}
 function startDemo(){
@@ -588,7 +806,7 @@ document.addEventListener('submit',function(e){
       if(name.length<2){authErr='Inserisci nome e cognome.';render(false);return;}
       if(pw.length<4){authErr='La password deve avere almeno 4 caratteri.';render(false);return;}
       if(found){authErr='Questa email è già registrata. Prova ad accedere.';render(false);return;}
-      b.users.push({name:name,email:email,pw:pw,pts:0});
+      b.users.push({name:name,email:email,pw:pw,pts:0,code:mkCode()});
       S.session=email;S.view='card';authErr='';save();render(true);toast('Registrazione completata');return;
     }
     if(!found||found.pw!==pw){authErr='Email o password non corretti.';render(false);return;}
@@ -619,12 +837,8 @@ document.addEventListener('pointerout',function(e){
   if(t&&!t.contains(e.relatedTarget)){t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');t.classList.remove('hot');}
 });
 window.addEventListener('hashchange',function(){
+  closeScan();
   LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
-  S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
-});
-render(true);
-})();
-</script>de=LOCK;
   S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
 });
 render(true);
