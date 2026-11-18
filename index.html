@@ -390,6 +390,10 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .msg small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
 .tkrow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 0;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;cursor:pointer}
 .tkrow b{display:block}.tkrow small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.msgdel{background:none;border:0;padding:0;margin:0;color:var(--muted);font:inherit;font-size:11px;text-decoration:underline;cursor:pointer}
+.msgdel:hover{color:var(--bad)}
+.nbadge{animation:nbp 1.6s ease-in-out infinite}@keyframes nbp{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+@media (prefers-reduced-motion:reduce){.nbadge{animation:none}}
 </style>
 
 <div class="glow" aria-hidden="true"><i></i><i></i></div>
@@ -639,10 +643,13 @@ function tkBadge(){var n=tkUnread();return n?'<span class="nbadge">'+n+'</span>'
 function tkB(){return '<span data-tkb>'+tkBadge()+'</span>';}
 function tkWhen(d){var x=new Date(d);return x.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' '+x.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}
 function ownerName(id){if(ADM)for(var i=0;i<ADM.owners.length;i++)if(ADM.owners[i].id===id)return ADM.owners[i].biz_name;return '';}
+var BASE_T=document.title;
+function tkSync(){var n=tkUnread();document.querySelectorAll('[data-tkb]').forEach(function(x){x.innerHTML=tkBadge();});document.title=(n?'('+n+') ':'')+BASE_T;}
 async function loadTk(){
   if(!A&&!ADM){TK.list=[];return;}
   var r=await SB.from('tessera_tickets').select('*').order('last_at',{ascending:false}).limit(100);
   if(!r.error) TK.list=r.data||[];
+  tkSync();
 }
 async function openTk(id){
   var m=await SB.from('tessera_ticket_msgs').select('*').eq('ticket_id',id).order('created_at',{ascending:true});
@@ -655,9 +662,9 @@ function tkView(){
   var t=TK.open?tkOf(TK.open):null;
   if(t){
     var mine=ADM?'admin':'owner',cl=t.status==='closed';
-    var ms=TK.msgs.map(function(m){var me=m.sender===mine;return '<div class="msg'+(me?' me':'')+'">'+esc(m.body)+'<small>'+(me?'Tu':(ADM?esc(ownerName(t.owner_id)):'Assistenza'))+' · '+tkWhen(m.created_at)+'</small></div>';}).join('');
+    var ms=TK.msgs.map(function(m){var me=m.sender===mine;return '<div class="msg'+(me?' me':'')+'">'+esc(m.body)+'<small>'+(me?'Tu':(ADM?esc(ownerName(t.owner_id)):'Assistenza'))+' · '+tkWhen(m.created_at)+((ADM||me)?' · <button type="button" class="msgdel" data-a="msgdel" data-id="'+m.id+'">Elimina</button>':'')+'</small></div>';}).join('');
     return '<div class="pbox"><div class="admhead" style="margin-bottom:8px"><div><h3 style="margin:0">'+esc(t.subject)+'</h3><p class="small">'+(ADM?esc(ownerName(t.owner_id))+' · ':'')+(cl?'Chiuso':'Aperto')+'</p></div><button class="btn sm" data-a="tkback">Elenco</button></div><div class="msgs">'+ms+'</div>'+
-    '<form data-f="tkreply" novalidate style="margin-top:12px"><div class="field"><label for="tr1">'+(cl?'Scrivi per riaprire':'Rispondi')+'</label><textarea id="tr1" name="body" maxlength="1000" rows="3"></textarea></div><p class="err"></p><div class="acts wide"><button class="btn primary" type="submit">Invia</button><button class="btn sm" type="button" data-a="tkclose" data-id="'+t.id+'" data-c="'+(cl?'0':'1')+'">'+(cl?'Riapri':'Segna come risolto')+'</button><button class="btn sm" type="button" data-a="tkref">Aggiorna</button></div></form></div>';
+    '<form data-f="tkreply" novalidate style="margin-top:12px"><div class="field"><label for="tr1">'+(cl?'Scrivi per riaprire':'Rispondi')+'</label><textarea id="tr1" name="body" maxlength="1000" rows="3"></textarea></div><p class="err"></p><div class="acts wide"><button class="btn primary" type="submit">Invia</button><button class="btn sm" type="button" data-a="tkclose" data-id="'+t.id+'" data-c="'+(cl?'0':'1')+'">'+(cl?'Riapri':'Segna come risolto')+'</button><button class="btn sm" type="button" data-a="tkref">Aggiorna</button>'+(ADM?'<button class="btn sm" type="button" data-a="tkdel" data-id="'+t.id+'">Elimina conversazione</button>':'')+'</div></form></div>';
   }
   var un=ADM?'admin_unread':'owner_unread';
   var rows=TK.list.map(function(x){return '<button class="tkrow" type="button" data-a="tkopen" data-id="'+x.id+'"><span><b>'+esc(x.subject)+'</b><small>'+(ADM?esc(ownerName(x.owner_id))+' · ':'')+tkWhen(x.last_at)+'</small></span><span class="acts">'+(x[un]?'<span class="pill warn">Nuovo</span>':'')+'<span class="pill'+(x.status==='closed'?'':' ok')+'">'+(x.status==='closed'?'Chiuso':'Aperto')+'</span></span></button>';}).join('');
@@ -669,15 +676,15 @@ function tkView(){
 function support(){var t=tradeOf(A.trade);return '<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>Assistenza</h2><p class="small">Scrivi al gestore di Tessera: rinnovi, pagamenti, problemi</p></div><button class="btn sm" data-a="panel">Indietro</button></div>'+tkView()+'</div>';}
 setInterval(async function(){
   if(document.hidden||(!A&&!ADM)) return;
-  var sig=function(){return tkUnread()+'|'+TK.list.length+'|'+(TK.list[0]?TK.list[0].last_at:'');},b=sig();
+  var sig=function(){return tkUnread()+'|'+TK.list.length+'|'+(TK.list[0]?TK.list[0].last_at:'');},b=sig(),u0=tkUnread();
   try{await loadTk();}catch(e){return;}
-  document.querySelectorAll('[data-tkb]').forEach(function(n){n.innerHTML=tkBadge();});
+  if(tkUnread()>u0) toast(ADM?'Nuovo messaggio da un cliente':'Nuovo messaggio dall’assistenza');
   var ae=document.activeElement,typing=ae&&ae.tagName==='TEXTAREA'&&ae.value.trim();
   if(sig()===b||typing) return;
   var inT=S.view==='support'||(ADM&&S.view==='seller'&&S.at==='tickets'); if(!inT) return;
   if(TK.open){var t=tkOf(TK.open); if(t&&t.last_at!==TK.last) await openTk(TK.open);}
   render(false);
-},40000);
+},20000);
 async function loadAdm(){
   var a=await SB.rpc('tessera_is_admin'); if(a.data!==true){ADM=null;return;}
   var o=await SB.from('tessera_owners').select('*').order('created_at',{ascending:false}),c=await SB.from('tessera_clients').select('owner_id'),n={};
@@ -864,7 +871,7 @@ function render(fresh){
   var v=S.view; if((v==='panel'||v==='support')&&!A) v=S.view='home';
   var h=v==='home'?home():v==='auth'?auth():v==='seller'?seller():v==='card'?cardView():v==='support'?support():panel();
   $('#app').innerHTML='<div class="v on'+(fresh?' enter':'')+'">'+h+'</div>'+(v==='panel'&&S.open?modal():'')+(v==='panel'&&S.del?delDlg():'');
-  var hb=$('#hb'); hb.setAttribute('data-a',A?'panel':'login'); hb.textContent=A?'Il mio pannello':'Accedi'; hb.style.display=v==='card'?'none':'';
+  var hb=$('#hb'); hb.setAttribute('data-a',A?'panel':'login'); hb.innerHTML=A?'Il mio pannello '+tkB():'Accedi'; hb.style.display=v==='card'?'none':'';
   var inC=v==='card'&&C, inP=((v==='panel'||v==='support')&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
   r.setProperty('--glow',th.c1); if(inP) r.setProperty('--brand',th.b); else r.removeProperty('--brand');
   if(v==='home'){stage(false);initLand();}
@@ -999,7 +1006,16 @@ document.addEventListener('click',async function(e){
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
   if(a==='forget'){lsSet(null);S.secret=null;C=null;history.replaceState(null,'',location.pathname+location.search);go('home');return;}
   if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
-  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};S.resd={};S.at=null;S.tkTo=null;TK.list=[];TK.open=null;if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};S.resd={};S.at=null;S.tkTo=null;TK.list=[];TK.open=null;tkSync();if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='msgdel'){
+    if(!confirm('Eliminare questo messaggio?')) return;
+    var rd=await SB.rpc('tessera_ticket_msg_delete',{p_msg:id}); if(rd.error) return toast('Errore: '+rd.error.message);
+    if(rd.data===true){TK.open=null;await loadTk();} else {await openTk(TK.open);}
+    render(false);toast('Messaggio eliminato');return;}
+  if(a==='tkdel'){
+    if(!confirm('Eliminare tutta la conversazione? L’operazione non si può annullare.')) return;
+    var rt=await SB.rpc('tessera_ticket_delete',{p_ticket:id}); if(rt.error) return toast('Errore: '+rt.error.message);
+    TK.open=null;await loadTk();render(false);toast('Conversazione eliminata');return;}
   if(a==='tkgo'){await loadTk();TK.open=null;go('support');return;}
   if(a==='tkopen'){if(await openTk(id)) render(false);return;}
   if(a==='tkback'){TK.open=null;await loadTk();render(false);return;}
