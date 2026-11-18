@@ -849,9 +849,10 @@ function ost(o){
   var d=Math.ceil((new Date(o.trial_ends_at)-Date.now())/864e5); return d>0?['trial','Prova · '+d+' gg']:['bad','Scaduto'];
 }
 function admHead(){return '<div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni, codici e assistenza</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div>';}
-function admTabs(){var tk=S.at==='tickets';return '<div class="strip" style="padding-top:0"><button class="tchip" data-a="atab" data-k="owners" aria-pressed="'+(!tk)+'">Clienti</button><button class="tchip" data-a="atab" data-k="tickets" aria-pressed="'+tk+'">Ticket '+tkB()+'</button></div>';}
+function admTabs(){var tk=S.at==='tickets',vi=S.at==='visits';return '<div class="strip" style="padding-top:0"><button class="tchip" data-a="atab" data-k="owners" aria-pressed="'+(!tk&&!vi)+'">Clienti</button><button class="tchip" data-a="atab" data-k="tickets" aria-pressed="'+tk+'">Ticket '+tkB()+'</button><button class="tchip" data-a="atab" data-k="visits" aria-pressed="'+vi+'">Visite</button></div>';}
 function sadmin(){
   if(S.at==='tickets') return '<div class="pw">'+admHead()+admTabs()+tkView()+'</div>';
+  if(S.at==='visits') return '<div class="pw">'+admHead()+admTabs()+visitsView()+'</div>';
   var os=ADM.owners,cnt={all:os.length,trial:0,ok:0,bad:0,warn:0};
   os.forEach(function(o){cnt[ost(o)[0]]++;if(ost(o)[2])cnt.warn++;});
   var chips=[['all','Tutti'],['trial','In prova'],['ok','Attivi'],['warn','In scadenza'],['bad','Scaduti/sospesi']].map(function(x){return '<button class="tchip" data-a="af" data-k="'+x[0]+'" aria-pressed="'+(S.f===x[0])+'">'+x[1]+' · '+cnt[x[0]]+'</button>';}).join('');
@@ -889,7 +890,7 @@ document.addEventListener('input',function(e){
   if(e.target&&e.target.id==='dci'){var b=$('#dcb'); if(b) b.disabled=e.target.value.trim().toUpperCase()!=='ELIMINA';}
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.del){S.del=null;render(false);}});
-function go(v){S.view=v;S.err='';S.open=null;S.del=null;render(true);window.scrollTo(0,0);}
+function go(v){S.view=v;S.err='';S.open=null;S.del=null;render(true);window.scrollTo(0,0);trackVisit(v);}
 document.addEventListener('change',function(e){
   var el=e.target; if(!el||el.id!=='a0'||!valid(el.value)) return;
   var prev=S.trade; S.trade=el.value;
@@ -1021,7 +1022,7 @@ document.addEventListener('click',async function(e){
   if(a==='tkback'){TK.open=null;await loadTk();render(false);return;}
   if(a==='tkref'){await loadTk();if(TK.open)await openTk(TK.open);render(false);toast('Aggiornato');return;}
   if(a==='tkclose'){var rcl=await SB.rpc('tessera_ticket_close',{p_ticket:id,p_closed:t.getAttribute('data-c')==='1'});if(rcl.error)return toast('Errore: '+rcl.error.message);await loadTk();render(false);return;}
-  if(a==='atab'){S.at=t.getAttribute('data-k');TK.open=null;S.tkTo=null;if(S.at==='tickets')await loadTk();render(false);return;}
+  if(a==='atab'){S.at=t.getAttribute('data-k');TK.open=null;S.tkTo=null;if(S.at==='tickets')await loadTk();if(S.at==='visits'){VS=null;render(false);await loadVisits();}render(false);return;}
   if(a==='awrite'){S.at='tickets';S.tkTo=id;TK.open=null;await loadTk();render(false);window.scrollTo(0,0);return;}
   if(a==='acode'){var se=document.getElementById('dur-'+id),dv=se?se.value:'30',dn=null;S.dur[id]=dv;
     if(dv==='custom'){var pr=prompt('Quanti giorni di durata?');if(pr===null)return;dn=parseInt(pr,10);if(!(dn>0&&dn<=3650))return toast('Numero di giorni non valido');}
@@ -1165,7 +1166,42 @@ document.addEventListener('pointermove',function(e){
   requestAnimationFrame(loop);
 })(0);
 SB.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY'){S.mode='newpw'; S.view='auth'; render(true);} });
-async function boot(){try{await Promise.all([loadMe(),loadAdm()]);}catch(e){} route(); if(S.view==='card') await loadCard(); render(true);}
+/* ---- statistiche visite (solo il super admin le vede) ---- */
+var VS=null;
+function trackSid(){
+  try{var k=sessionStorage.getItem('ts_sid'); if(k&&k.length>=8) return k;}catch(e){}
+  var a=new Uint8Array(12); (window.crypto||{getRandomValues:function(x){for(var i=0;i<x.length;i++)x[i]=Math.random()*256;}}).getRandomValues(a);
+  var id=Array.prototype.map.call(a,function(b){return ('0'+b.toString(16)).slice(-2);}).join('');
+  try{sessionStorage.setItem('ts_sid',id);}catch(e){}
+  return id;
+}
+function trackVisit(view){
+  try{
+    if(ADM) return;
+    var kind=view==='home'?'landing':(view==='card'?'card':null);
+    if(!kind||trackVisit.l===kind) return; trackVisit.l=kind;
+    SB.rpc('tessera_track',{p_kind:kind,p_vid:trackSid()}).then(function(){},function(){});
+  }catch(e){}
+}
+async function loadVisits(){
+  var r=await SB.rpc('tessera_admin_stats');
+  VS=r.error?{err:r.error.message}:r.data;
+}
+function visitsView(){
+  var d=VS; if(!d) return '<p class="small">Caricamento…</p>';
+  if(d.err) return '<p class="small">Errore: '+esc(d.err)+'</p>';
+  var card=function(t,x){x=x||{};return '<div style="flex:1;min-width:120px;padding:12px;border-radius:14px;background:rgba(127,127,127,.12)"><span class="small">'+t+'</span><b style="font-size:22px;display:block">'+(x.u||0)+'</b><span class="small">visitatori · '+(x.v||0)+' visite</span></div>';};
+  var days=d.days||[],m=1; days.forEach(function(x){var t=x.landing+x.card; if(t>m)m=t;});
+  var chart=days.map(function(x){
+    var hl=Math.round(x.landing/m*70),hc=Math.round(x.card/m*70),lab=new Date(x.d+'T12:00:00').toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'});
+    return '<div title="'+esc(lab)+': '+x.landing+' sito, '+x.card+' card" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:96px"><div style="width:100%;display:flex;flex-direction:column;justify-content:flex-end;height:70px"><i style="display:block;width:100%;height:'+hc+'px;background:rgba(127,127,127,.55);border-radius:3px 3px 0 0"></i><i style="display:block;width:100%;height:'+hl+'px;background:var(--brand,#3b6cff)"></i></div><span class="small" style="font-size:9px">'+esc(lab.slice(0,2))+'</span></div>';
+  }).join('');
+  return '<div class="pbox"><div style="display:flex;gap:8px;flex-wrap:wrap">'+card('Oggi',d.today)+card('7 giorni',d.d7)+card('30 giorni',d.d30)+card('Totale',d.tot)+'</div>'+
+    '<h3 style="margin:18px 0 6px">Ultimi 14 giorni</h3><div style="display:flex;align-items:flex-end;gap:3px">'+chart+'</div>'+
+    '<p class="small" style="margin-top:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--brand,#3b6cff)"></span> visite al sito &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(127,127,127,.55)"></span> aperture di una card</p>'+
+    '<p class="small" style="margin-top:12px">Le tue visite da super admin non vengono contate. Dati anonimi: nessun IP, nessun cookie. Un visitatore = una sessione del browser.</p></div>';
+}
+async function boot(){try{await Promise.all([loadMe(),loadAdm()]);}catch(e){} route(); if(S.view==='card') await loadCard(); render(true); trackVisit(S.view);}
 function route(){
   var sc=secretFromHash();
   if(sc){S.secret=sc;S.view='card';return;}
