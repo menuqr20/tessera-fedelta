@@ -243,6 +243,11 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 /* ---- v4: flusso unico + 3D ---- */
 .small{font-size:13px;color:var(--muted)}
 .link{background:none;border:0;padding:0;color:var(--brand);font-weight:600;text-decoration:underline;cursor:pointer}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin:0 0 14px}
+.consent input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--brand)}
+.consent a{color:var(--brand);font-weight:600}
+.fl{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:13px;padding:6px 0 calc(28px + env(safe-area-inset-bottom,0px))}
+.fl a{color:var(--muted);text-decoration:underline}
 .err{color:var(--bad);font-size:13px;min-height:1.3em;margin:0 0 8px}
 .field input[type=password],.field input[type=number]{width:100%;min-height:48px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:16px}
 .field input:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)}
@@ -333,6 +338,7 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
   <button class="btn primary sm" id="hb" data-a="login">Accedi</button>
 </div></header>
 <main class="wrap" id="app"></main>
+<footer class="fl wrap"><a href="privacy.html">Informativa privacy</a><a href="termini.html">Termini d’uso</a></footer>
 <div id="toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
@@ -595,7 +601,7 @@ function home(){
   '<div><div class="scene" id="scene"><div class="rig" id="rig"><div class="cs" id="cs"></div><div class="coin c1" id="k1"></div><div class="coin c2" id="k2"></div><div class="coin c3">+1</div></div></div>'+
   '<p class="cap" id="cap"></p><p class="strip-l">Scegli il tuo mestiere</p><div class="strip" role="group" aria-label="Mestiere">'+strip+'</div></div></section>'+
   '<ol class="steps3"><li><b>1</b>Scegli il mestiere</li><li><b>2</b>Registrati: 3 giorni di prova</li><li><b>3</b>Gestisci le card dei tuoi clienti</li></ol>'+
-  '<p class="fine">Finita la prova, attivi il tuo profilo con un codice che ti inviamo su WhatsApp o per email dopo il pagamento.</p>';
+  '<p class="fine">Finita la prova, attivi il tuo profilo con un codice che ti inviamo per email dopo il pagamento.</p>';
 }
 function stage(flip){
   var t=tradeOf(S.trade),o=demoOf(t.k),c=$('#cs'); if(!c) return;
@@ -605,15 +611,24 @@ function stage(flip){
   document.documentElement.style.setProperty('--glow',(THEMES[t.theme]||THEMES.cobalto).c1);
 }
 function auth(){
+  if(S.mode==='forgot') return '<section class="narrow"><h2>Recupera la password</h2><p class="small">Scrivi l’email con cui ti sei registrato: ti mandiamo un link per sceglierne una nuova.</p>'+
+  '<form data-f="forgot" novalidate style="margin-top:14px"><div class="field"><label for="f1">Email</label><input id="f1" name="email" type="email" autocomplete="email"></div>'+
+  '<p class="err"></p><button class="btn primary block" type="submit">Invia il link</button></form>'+
+  '<p class="small sw"><button class="link" data-a="login">Torna all’accesso</button></p></section>';
+  if(S.mode==='newpw') return '<section class="narrow"><h2>Scegli una nuova password</h2>'+
+  '<form data-f="newpw" novalidate style="margin-top:14px"><div class="field"><label for="n1">Nuova password</label><input id="n1" name="pw" type="password" autocomplete="new-password"><span class="hint">Almeno 6 caratteri.</span></div>'+
+  '<p class="err"></p><button class="btn primary block" type="submit">Salva la password</button></form></section>';
   var r=S.mode==='reg',t=tradeOf(S.trade);
   return '<section class="narrow"><h2>'+(r?'Crea il tuo pannello':'Bentornato')+'</h2>'+
   (r?'<p class="small">Mestiere: <b>'+esc(t.label)+'</b> · <button class="link" data-a="home">cambia</button></p>':'')+
   '<form data-f="auth" novalidate style="margin-top:14px">'+
   (r?'<div class="field"><label for="a1">Nome dell’attività</label><input id="a1" name="biz" type="text" maxlength="28" value="'+esc(defaults(t.k).name)+'"></div>':'')+
   '<div class="field"><label for="a2">Email</label><input id="a2" name="email" type="email" autocomplete="email"></div>'+
-  (r?'<div class="field"><label for="a3">WhatsApp</label><input id="a3" name="tel" type="tel" autocomplete="tel"><span class="hint">Qui ti mandiamo il codice di attivazione.</span></div>':'')+
+  (r?'<div class="field"><label for="a3">Telefono</label><input id="a3" name="tel" type="tel" autocomplete="tel"><span class="hint">Ti scriviamo via email per l’attivazione.</span></div>':'')+
   '<div class="field"><label for="a4">Password</label><input id="a4" name="pw" type="password" autocomplete="'+(r?'new-password':'current-password')+'"></div>'+
+  (r?'<label class="consent"><input type="checkbox" name="consent" value="1"><span>Ho letto l’<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a> e i <a href="termini.html" target="_blank" rel="noopener">termini d’uso</a> e li accetto.</span></label>':'')+
   '<p class="err"></p><button class="btn primary block" type="submit">'+(r?'Inizia i 3 giorni di prova':'Entra')+'</button></form>'+
+  (r?'':'<p class="small sw"><button class="link" data-a="forgot">Password dimenticata?</button></p>')+
   '<p class="small sw">'+(r?'Hai già un account? <button class="link" data-a="login">Accedi</button>':'Nuovo? <button class="link" data-a="reg">Registrati</button>')+'</p></section>';
 }
 function codeForm(){return '<form data-f="code" novalidate><div class="field"><label for="c1">Codice di attivazione</label><input id="c1" name="code" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"></div><p class="err"></p><button class="btn primary block" type="submit">Attiva</button></form>';}
@@ -621,8 +636,7 @@ function panel(){
   var b=A.biz,t=tradeOf(A.trade),st=status();
   var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="logout">Esci</button></div>';
   if(st==='lock'){
-    return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':'La prova è finita')+'</h3><p class="small" style="margin-bottom:14px">Dopo il pagamento ricevi un codice su WhatsApp o per email. Inseriscilo qui per riattivare il pannello: i tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+
-    '<a class="btn block" style="margin-top:10px" target="_blank" rel="noopener" href="'+waLink(CONFIG.wa,'Ciao, sono '+b.name+' ('+A.email+'). Vorrei attivare Tessera.')+'">Scrivici su WhatsApp</a></div></div>';
+    return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':'La prova è finita')+'</h3><p class="small" style="margin-bottom:14px">Per continuare ti contatteremo via email all’indirizzo <b>'+esc(A.email)+'</b>. Dopo il pagamento ricevi un codice: inseriscilo qui per riattivare il pannello. I tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+'</div></div>';
   }
   h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><b>Profilo attivo</b></div>';
   var rows=A.clients.map(function(c,i){var full=c.pts>=b.slots,p=Math.round(c.pts/b.slots*100);
@@ -652,7 +666,7 @@ function sadmin(){
     var s=ost(o),code=S.res[o.id],msg=code?'Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code:'';
     return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+'">'+s[1]+'</span>'+
     '<div class="acts wide"><button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
-    (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b></span><span class="acts"><a class="btn sm primary" target="_blank" rel="noopener" href="'+waLink(o.phone,msg)+'">WhatsApp</a><a class="btn sm" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
+    (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b></span><span class="acts"><a class="btn sm primary" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
   return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
 }
 function seller(){
@@ -781,6 +795,7 @@ document.addEventListener('click',async function(e){
   if(a==='flip'){t.classList.toggle('on');return;}
   if(a==='home'){go('home');return;}
   if(a==='reg'||a==='login'){S.mode=a;go('auth');return;}
+  if(a==='forgot'){S.mode='forgot';go('auth');return;}
   if(a==='areg0'||a==='areg1'){S.mode=a==='areg1'?'areg':'reg';render(false);return;}
   if(a==='panel'){go('panel');return;}
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
@@ -821,8 +836,9 @@ document.addEventListener('submit',async function(e){
     if(!/^\S+@\S+\.\S+$/.test(em)) return done('Inserisci un’email valida.');
     if(S.mode==='reg'){
       if(g('biz').length<2) return done('Inserisci il nome dell’attività.');
-      if(g('tel').replace(/\D/g,'').length<6) return done('Inserisci il numero WhatsApp.');
+      if(g('tel').replace(/\D/g,'').length<6) return done('Inserisci il numero di telefono.');
       if(pw.length<6) return done('La password deve avere almeno 6 caratteri.');
+      if(g('consent')!=='1') return done('Per registrarti accetta informativa privacy e termini d’uso.');
       var b=demoOf(S.trade);
       var r=await SB.auth.signUp({email:em,password:pw,options:{data:{trade:S.trade,biz_name:g('biz'),phone:g('tel'),reward:b.reward,slots:b.slots,theme:b.theme}}});
       if(r.error) return done(/registered/i.test(r.error.message)?'Questa email è già registrata: accedi.':'Registrazione non riuscita: '+r.error.message);
@@ -833,6 +849,20 @@ document.addEventListener('submit',async function(e){
     if(r1.error) return done(/confirm/i.test(r1.error.message)?'Conferma prima l’email che ti abbiamo inviato.':'Email o password non corretti.');
     await loadMe(); if(!A) return done('Nessun profilo titolare per questa email.');
     go('panel'); return;
+  }
+  if(k==='forgot'){
+    var fe=g('email').toLowerCase();
+    if(!/^\S+@\S+\.\S+$/.test(fe)) return done('Inserisci un’email valida.');
+    var rf=await SB.auth.resetPasswordForEmail(fe,{redirectTo:location.origin+location.pathname});
+    if(rf.error) return done('Non riuscito: '+rf.error.message);
+    f.innerHTML='<p class="banner ok">Se l’email è registrata, ti abbiamo mandato un link per scegliere una nuova password. Controlla anche la cartella spam.</p>'; return;
+  }
+  if(k==='newpw'){
+    var np=g('pw');
+    if(np.length<6) return done('La password deve avere almeno 6 caratteri.');
+    var ru=await SB.auth.updateUser({password:np});
+    if(ru.error) return done('Non riuscito: '+ru.error.message);
+    await loadMe(); S.mode='login'; if(A){go('panel');} else {go('home');} toast('Password aggiornata'); return;
   }
   if(k==='alogin'){
     var em2=g('email').toLowerCase(), pw2=g('pw'), ar=S.mode==='areg';
@@ -879,6 +909,7 @@ document.addEventListener('pointermove',function(e){
   }
   requestAnimationFrame(loop);
 })(0);
+SB.auth.onAuthStateChange(function(ev){ if(ev==='PASSWORD_RECOVERY'){S.mode='newpw'; S.view='auth'; render(true);} });
 async function boot(){try{await Promise.all([loadMe(),loadAdm()]);}catch(e){} route(); if(S.view==='card') await loadCard(); render(true);}
 function route(){
   var sc=secretFromHash();
