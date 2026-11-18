@@ -378,6 +378,18 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 @media(hover:hover){.steps3.in li:hover{transform:rotateX(8deg) rotateY(-7deg) translateZ(14px);transition-delay:0s;transition-duration:.4s}}
 @media(max-width:700px){.cf{height:380px}.cfi{width:250px;margin-left:-125px;top:36px}}
 @media(prefers-reduced-motion:reduce){.floor,.hero2 .coin{animation:none}.cfi{transition:none}.steps3 li{opacity:1;transform:none}}
+
+.banner.warn{background:color-mix(in srgb,var(--coral) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--coral) 45%,var(--line))}
+.pill.warn{background:color-mix(in srgb,var(--coral) 20%,var(--surface));color:var(--coral)}
+.nbadge{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:6px;border-radius:99px;background:var(--coral);color:#fff;font-size:11px;font-weight:700}
+.field textarea{width:100%;min-height:96px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font-size:16px;font-family:inherit;resize:vertical;box-sizing:border-box}
+.field textarea:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)}
+.msgs{display:flex;flex-direction:column;gap:2px}
+.msg{max-width:88%;padding:10px 13px;border-radius:14px;background:var(--soft);margin:4px 0;white-space:pre-wrap;word-break:break-word;font-size:14px}
+.msg.me{margin-left:auto;background:color-mix(in srgb,var(--brand) 18%,var(--surface))}
+.msg small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.tkrow{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 0;border:0;border-top:1px solid var(--line);background:none;color:inherit;font:inherit;cursor:pointer}
+.tkrow b{display:block}.tkrow small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
 </style>
 
 <div class="glow" aria-hidden="true"><i></i><i></i></div>
@@ -595,6 +607,7 @@ async function loadMe(){
   var r=await SB.from('tessera_owners').select('*').eq('id',s.user.id).maybeSingle(); if(!r.data){A=null;return;}
   var o=r.data,c=await SB.from('tessera_clients').select('*').eq('owner_id',o.id).order('created_at',{ascending:false});
   A={id:o.id,email:o.email,trade:o.trade,status:o.status,trial:o.trial_ends_at,until:o.active_until,biz:{name:o.biz_name,reward:o.reward,slots:o.slots,theme:o.theme},clients:c.data||[]};
+  await loadTk();
 }
 /* ---- export / backup ---- */
 function dl(name,text,type){var b=new Blob([text],{type:type+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
@@ -609,7 +622,7 @@ function exportOwner(){
 }
 async function exportAll(){
   if(!ADM)return;
-  var out={exported_at:new Date().toISOString()},t=['tessera_owners','tessera_clients','tessera_scans','tessera_codes'];
+  var out={exported_at:new Date().toISOString()},t=['tessera_owners','tessera_clients','tessera_scans','tessera_codes','tessera_tickets','tessera_ticket_msgs'];
   for(var i=0;i<t.length;i++){
     var all=[],from=0;
     while(true){var r=await SB.from(t[i]).select('*').range(from,from+999);if(r.error)return toast('Errore: '+r.error.message);all=all.concat(r.data||[]);if(!r.data||r.data.length<1000)break;from+=1000;}
@@ -618,11 +631,59 @@ async function exportAll(){
   dl('backup-tessera-'+stamp()+'.json',JSON.stringify(out,null,1),'application/json');
   toast('Backup scaricato');
 }
+/* ---- ticket assistenza ---- */
+var TK={list:[],msgs:[],open:null,last:null};
+function tkOf(id){for(var i=0;i<TK.list.length;i++)if(TK.list[i].id===id)return TK.list[i];return null;}
+function tkUnread(){var n=0,k=ADM?'admin_unread':'owner_unread';TK.list.forEach(function(t){if(t[k])n++;});return n;}
+function tkBadge(){var n=tkUnread();return n?'<span class="nbadge">'+n+'</span>':'';}
+function tkB(){return '<span data-tkb>'+tkBadge()+'</span>';}
+function tkWhen(d){var x=new Date(d);return x.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' '+x.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}
+function ownerName(id){if(ADM)for(var i=0;i<ADM.owners.length;i++)if(ADM.owners[i].id===id)return ADM.owners[i].biz_name;return '';}
+async function loadTk(){
+  if(!A&&!ADM){TK.list=[];return;}
+  var r=await SB.from('tessera_tickets').select('*').order('last_at',{ascending:false}).limit(100);
+  if(!r.error) TK.list=r.data||[];
+}
+async function openTk(id){
+  var m=await SB.from('tessera_ticket_msgs').select('*').eq('ticket_id',id).order('created_at',{ascending:true});
+  if(m.error){toast('Errore: '+m.error.message);return false;}
+  TK.open=id;TK.msgs=m.data||[];
+  await SB.rpc('tessera_ticket_read',{p_ticket:id}); await loadTk();
+  var t=tkOf(id); TK.last=t?t.last_at:null; return true;
+}
+function tkView(){
+  var t=TK.open?tkOf(TK.open):null;
+  if(t){
+    var mine=ADM?'admin':'owner',cl=t.status==='closed';
+    var ms=TK.msgs.map(function(m){var me=m.sender===mine;return '<div class="msg'+(me?' me':'')+'">'+esc(m.body)+'<small>'+(me?'Tu':(ADM?esc(ownerName(t.owner_id)):'Assistenza'))+' · '+tkWhen(m.created_at)+'</small></div>';}).join('');
+    return '<div class="pbox"><div class="admhead" style="margin-bottom:8px"><div><h3 style="margin:0">'+esc(t.subject)+'</h3><p class="small">'+(ADM?esc(ownerName(t.owner_id))+' · ':'')+(cl?'Chiuso':'Aperto')+'</p></div><button class="btn sm" data-a="tkback">Elenco</button></div><div class="msgs">'+ms+'</div>'+
+    '<form data-f="tkreply" novalidate style="margin-top:12px"><div class="field"><label for="tr1">'+(cl?'Scrivi per riaprire':'Rispondi')+'</label><textarea id="tr1" name="body" maxlength="1000" rows="3"></textarea></div><p class="err"></p><div class="acts wide"><button class="btn primary" type="submit">Invia</button><button class="btn sm" type="button" data-a="tkclose" data-id="'+t.id+'" data-c="'+(cl?'0':'1')+'">'+(cl?'Riapri':'Segna come risolto')+'</button><button class="btn sm" type="button" data-a="tkref">Aggiorna</button></div></form></div>';
+  }
+  var un=ADM?'admin_unread':'owner_unread';
+  var rows=TK.list.map(function(x){return '<button class="tkrow" type="button" data-a="tkopen" data-id="'+x.id+'"><span><b>'+esc(x.subject)+'</b><small>'+(ADM?esc(ownerName(x.owner_id))+' · ':'')+tkWhen(x.last_at)+'</small></span><span class="acts">'+(x[un]?'<span class="pill warn">Nuovo</span>':'')+'<span class="pill'+(x.status==='closed'?'':' ok')+'">'+(x.status==='closed'?'Chiuso':'Aperto')+'</span></span></button>';}).join('');
+  var to='';
+  if(ADM){to='<div class="field"><label for="tn0">Destinatario</label><select id="tn0" name="owner"><option value="">Scegli il cliente…</option>'+ADM.owners.slice().sort(function(a,b){return String(a.biz_name).localeCompare(String(b.biz_name));}).map(function(o){return '<option value="'+o.id+'"'+(S.tkTo===o.id?' selected':'')+'>'+esc(o.biz_name)+'</option>';}).join('')+'</select></div>';}
+  return '<details class="pbox"'+((S.tkTo||!TK.list.length)?' open':'')+'><summary>'+(ADM?'Scrivi a un cliente':'Nuovo messaggio')+'</summary><form data-f="tknew" novalidate style="margin-top:12px">'+to+'<div class="field"><label for="tn1">Oggetto</label><input id="tn1" name="subject" type="text" maxlength="80" placeholder="'+(ADM?'Es. Abbonamento in scadenza':'Es. Pagamento / rinnovo / problema')+'"></div><div class="field"><label for="tn2">Messaggio</label><textarea id="tn2" name="body" maxlength="1000" rows="4"></textarea></div><p class="err"></p><button class="btn primary block" type="submit">Invia</button></form></details>'+
+    '<div class="pbox"><h3>Conversazioni</h3>'+(rows||'<p class="small">Nessun messaggio per ora.</p>')+'</div>';
+}
+function support(){var t=tradeOf(A.trade);return '<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>Assistenza</h2><p class="small">Scrivi al gestore di Tessera: rinnovi, pagamenti, problemi</p></div><button class="btn sm" data-a="panel">Indietro</button></div>'+tkView()+'</div>';}
+setInterval(async function(){
+  if(document.hidden||(!A&&!ADM)) return;
+  var sig=function(){return tkUnread()+'|'+TK.list.length+'|'+(TK.list[0]?TK.list[0].last_at:'');},b=sig();
+  try{await loadTk();}catch(e){return;}
+  document.querySelectorAll('[data-tkb]').forEach(function(n){n.innerHTML=tkBadge();});
+  var ae=document.activeElement,typing=ae&&ae.tagName==='TEXTAREA'&&ae.value.trim();
+  if(sig()===b||typing) return;
+  var inT=S.view==='support'||(ADM&&S.view==='seller'&&S.at==='tickets'); if(!inT) return;
+  if(TK.open){var t=tkOf(TK.open); if(t&&t.last_at!==TK.last) await openTk(TK.open);}
+  render(false);
+},40000);
 async function loadAdm(){
   var a=await SB.rpc('tessera_is_admin'); if(a.data!==true){ADM=null;return;}
   var o=await SB.from('tessera_owners').select('*').order('created_at',{ascending:false}),c=await SB.from('tessera_clients').select('owner_id'),n={};
   (c.data||[]).forEach(function(x){n[x.owner_id]=(n[x.owner_id]||0)+1;});
   ADM={owners:(o.data||[]).map(function(x){x.n=n[x.id]||0;return x;})};
+  await loadTk();
 }
 
 /* ---- pannello cliente: si apre dal link personale #c=SEGRETO, senza password ---- */
@@ -751,11 +812,11 @@ function auth(){
 function codeForm(){return '<form data-f="code" novalidate><div class="field"><label for="c1">Codice di attivazione</label><input id="c1" name="code" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"></div><p class="err"></p><button class="btn primary block" type="submit">Attiva</button></form>';}
 function panel(){
   var b=A.biz,t=tradeOf(A.trade),st=status();
-  var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="expc" title="Scarica i tuoi clienti">Esporta</button><button class="btn sm" data-a="logout">Esci</button></div>';
+  var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="expc" title="Scarica i tuoi clienti">Esporta</button><button class="btn sm" data-a="logout">Esci</button></div><button class="btn block" type="button" data-a="tkgo" style="margin-bottom:14px">Assistenza e messaggi '+tkB()+'</button>';
   if(st==='lock'){
     return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':(A.status==='active'?'Abbonamento scaduto':'La prova è finita'))+'</h3><p class="small" style="margin-bottom:14px">Per continuare ti contatteremo via email all’indirizzo <b>'+esc(A.email)+'</b>. Dopo il pagamento ricevi un codice: inseriscilo qui per riattivare il pannello. I tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+'</div></div>';
   }
-  h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><span><b>Profilo attivo</b> · '+(A.until?'fino al '+fdate(A.until)+(dleft(A.until)<=7?' ('+dleft(A.until)+(dleft(A.until)===1?' giorno rimasto)':' giorni rimasti)'):''):'a vita')+'</span></div>'+(A.until&&dleft(A.until)<=7?'<details class="pbox"><summary>Rinnova con un nuovo codice</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'');
+  h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':(A.until&&dleft(A.until)<=7?'<div class="banner warn"><span><b>Abbonamento in scadenza</b> · '+(dleft(A.until)<=1?'scade entro 24 ore':'scade tra '+dleft(A.until)+' giorni')+' (il '+fdate(A.until)+'). Per rinnovare scrivi all’assistenza: dopo il pagamento ricevi un nuovo codice, che si somma ai giorni che ti restano.</span><span class="acts"><button class="btn sm primary" data-a="tkgo">Scrivi all’assistenza</button></span></div><details class="pbox"><summary>Ho il nuovo codice</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><span><b>Profilo attivo</b> · '+(A.until?'fino al '+fdate(A.until):'a vita')+'</span></div>');
   var rows=A.clients.map(function(c,i){var full=c.pts>=b.slots,p=Math.round(c.pts/b.slots*100);
     return '<div class="cl" style="--i:'+i+'" data-s="'+esc([c.name,c.phone,c.email,c.code].join(' ').toLowerCase())+'" data-p="'+esc(String(c.phone||'').replace(/\D/g,''))+'"><button class="who" data-a="open" data-id="'+c.id+'"><span class="mini">'+ico(t.ico)+'</span><span><b>'+esc(c.name)+'</b><small>'+esc([c.phone,c.email].filter(Boolean).join(' · ')||'Apri la card')+'</small></span></button><div class="acts"><span class="cnt">'+c.pts+'/'+b.slots+'</span>'+
     (full?'<button class="btn sm primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn sm" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn sm primary" data-a="plus" data-id="'+c.id+'" aria-label="Aggiungi un tassello">+1</button>')+'</div><div class="bar"><i style="width:'+p+'%"></i></div></div>';}).join('');
@@ -776,20 +837,23 @@ function delDlg(){
   return '<div class="dlg" role="alertdialog" aria-modal="true" aria-label="Conferma eliminazione"><div class="box"><h3>Ultima conferma</h3><p class="small">L’eliminazione di <b>'+esc(c.name)+'</b> è definitiva e non si può annullare: il suo link e il suo QR smetteranno di funzionare.</p><div class="field"><label for="dci">Scrivi <b>ELIMINA</b> per confermare</label><input id="dci" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"></div><div class="macts"><button class="btn" data-a="delno">Annulla</button><button class="btn danger solid" id="dcb" data-a="delgo" disabled>Elimina</button></div></div></div>';
 }
 function ost(o){
-  if(o.status==='active'){ if(!o.active_until) return ['ok','Attivo · a vita']; var dd=dleft(o.active_until); return dd>0?['ok','Attivo · '+dd+' gg']:['bad','Scaduto']; }
+  if(o.status==='active'){ if(!o.active_until) return ['ok','Attivo · a vita']; var dd=dleft(o.active_until); return dd>7?['ok','Attivo · '+dd+' gg']:(dd>0?['ok','Scade · '+dd+' gg',true]:['bad','Scaduto']); }
   if(o.status==='suspended') return ['bad','Sospeso'];
   var d=Math.ceil((new Date(o.trial_ends_at)-Date.now())/864e5); return d>0?['trial','Prova · '+d+' gg']:['bad','Scaduto'];
 }
+function admHead(){return '<div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni, codici e assistenza</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div>';}
+function admTabs(){var tk=S.at==='tickets';return '<div class="strip" style="padding-top:0"><button class="tchip" data-a="atab" data-k="owners" aria-pressed="'+(!tk)+'">Clienti</button><button class="tchip" data-a="atab" data-k="tickets" aria-pressed="'+tk+'">Ticket '+tkB()+'</button></div>';}
 function sadmin(){
-  var os=ADM.owners,cnt={all:os.length,trial:0,ok:0,bad:0};
-  os.forEach(function(o){cnt[ost(o)[0]]++;});
-  var chips=[['all','Tutti'],['trial','In prova'],['ok','Attivi'],['bad','Scaduti/sospesi']].map(function(x){return '<button class="tchip" data-a="af" data-k="'+x[0]+'" aria-pressed="'+(S.f===x[0])+'">'+x[1]+' · '+cnt[x[0]]+'</button>';}).join('');
-  var rows=os.filter(function(o){return S.f==='all'||ost(o)[0]===S.f;}).map(function(o,i){
+  if(S.at==='tickets') return '<div class="pw">'+admHead()+admTabs()+tkView()+'</div>';
+  var os=ADM.owners,cnt={all:os.length,trial:0,ok:0,bad:0,warn:0};
+  os.forEach(function(o){cnt[ost(o)[0]]++;if(ost(o)[2])cnt.warn++;});
+  var chips=[['all','Tutti'],['trial','In prova'],['ok','Attivi'],['warn','In scadenza'],['bad','Scaduti/sospesi']].map(function(x){return '<button class="tchip" data-a="af" data-k="'+x[0]+'" aria-pressed="'+(S.f===x[0])+'">'+x[1]+' · '+cnt[x[0]]+'</button>';}).join('');
+  var rows=os.filter(function(o){return S.f==='all'||(S.f==='warn'?ost(o)[2]:ost(o)[0]===S.f);}).map(function(o,i){
     var s=ost(o),code=S.res[o.id],dd0=S.resd[o.id],dtxt=dd0?('valido '+dd0+' giorni dall’attivazione'):'senza scadenza',msg=code?'Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code+' ('+dtxt+')':'',sel='<select id="dur-'+o.id+'" aria-label="Durata" style="padding:8px;border-radius:10px">'+[['7','7 giorni'],['15','15 giorni'],['30','30 giorni'],['60','60 giorni'],['90','90 giorni'],['180','180 giorni'],['365','1 anno'],['life','A vita'],['custom','Altro…']].map(function(x){return '<option value="'+x[0]+'"'+((S.dur[o.id]||'30')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select>';
-    return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+'">'+s[1]+'</span>'+
-    '<div class="acts wide">'+sel+'<button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
+    return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+(s[2]?' warn':'')+'">'+s[1]+'</span>'+
+    '<div class="acts wide">'+sel+'<button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'<button class="btn sm" data-a="awrite" data-id="'+o.id+'">Scrivi</button></div>'+
     (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b> · '+dtxt+'</span><span class="acts"><a class="btn sm primary" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
-  return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
+  return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni, codici e assistenza</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div>'+admTabs()+'<div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
 }
 function seller(){
   if(ADM) return sadmin();
@@ -797,11 +861,11 @@ function seller(){
   return '<section class="narrow"><h2>Area riservata</h2><p class="small">Solo per il gestore di Tessera.</p><form data-f="alogin" novalidate style="margin-top:14px"><div class="field"><label for="e1">Email</label><input id="e1" name="email" type="email" autocomplete="email"></div><div class="field"><label for="e2">Password</label><input id="e2" name="pw" type="password" autocomplete="'+(r?'new-password':'current-password')+'"></div><p class="err"></p><button class="btn primary block" type="submit">'+(r?'Crea account':'Entra')+'</button></form><p class="small sw">'+(r?'Hai già l’account? <button class="link" data-a="areg0">Accedi</button>':'Primo accesso? <button class="link" data-a="areg1">Crea account</button>')+'</p></section>';
 }
 function render(fresh){
-  var v=S.view; if(v==='panel'&&!A) v=S.view='home';
-  var h=v==='home'?home():v==='auth'?auth():v==='seller'?seller():v==='card'?cardView():panel();
+  var v=S.view; if((v==='panel'||v==='support')&&!A) v=S.view='home';
+  var h=v==='home'?home():v==='auth'?auth():v==='seller'?seller():v==='card'?cardView():v==='support'?support():panel();
   $('#app').innerHTML='<div class="v on'+(fresh?' enter':'')+'">'+h+'</div>'+(v==='panel'&&S.open?modal():'')+(v==='panel'&&S.del?delDlg():'');
   var hb=$('#hb'); hb.setAttribute('data-a',A?'panel':'login'); hb.textContent=A?'Il mio pannello':'Accedi'; hb.style.display=v==='card'?'none':'';
-  var inC=v==='card'&&C, inP=(v==='panel'&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
+  var inC=v==='card'&&C, inP=((v==='panel'||v==='support')&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
   r.setProperty('--glow',th.c1); if(inP) r.setProperty('--brand',th.b); else r.removeProperty('--brand');
   if(v==='home'){stage(false);initLand();}
   applyFilter();
@@ -935,7 +999,14 @@ document.addEventListener('click',async function(e){
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
   if(a==='forget'){lsSet(null);S.secret=null;C=null;history.replaceState(null,'',location.pathname+location.search);go('home');return;}
   if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
-  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};S.resd={};if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};S.resd={};S.at=null;S.tkTo=null;TK.list=[];TK.open=null;if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='tkgo'){await loadTk();TK.open=null;go('support');return;}
+  if(a==='tkopen'){if(await openTk(id)) render(false);return;}
+  if(a==='tkback'){TK.open=null;await loadTk();render(false);return;}
+  if(a==='tkref'){await loadTk();if(TK.open)await openTk(TK.open);render(false);toast('Aggiornato');return;}
+  if(a==='tkclose'){var rcl=await SB.rpc('tessera_ticket_close',{p_ticket:id,p_closed:t.getAttribute('data-c')==='1'});if(rcl.error)return toast('Errore: '+rcl.error.message);await loadTk();render(false);return;}
+  if(a==='atab'){S.at=t.getAttribute('data-k');TK.open=null;S.tkTo=null;if(S.at==='tickets')await loadTk();render(false);return;}
+  if(a==='awrite'){S.at='tickets';S.tkTo=id;TK.open=null;await loadTk();render(false);window.scrollTo(0,0);return;}
   if(a==='acode'){var se=document.getElementById('dur-'+id),dv=se?se.value:'30',dn=null;S.dur[id]=dv;
     if(dv==='custom'){var pr=prompt('Quanti giorni di durata?');if(pr===null)return;dn=parseInt(pr,10);if(!(dn>0&&dn<=3650))return toast('Numero di giorni non valido');}
     else if(dv!=='life')dn=parseInt(dv,10);
@@ -1024,6 +1095,21 @@ document.addEventListener('submit',async function(e){
     if(ar&&!r2.data.session) return done('Account creato: conferma l’email, poi accedi.');
     await loadAdm(); if(!ADM) return done(ar?'Account creato. Ora va abilitato come super admin.':'Questo account non è abilitato come super admin.');
     render(true); return;
+  }
+  if(k==='tknew'){
+    var sj=g('subject'),bd=g('body'),ow=g('owner');
+    if(ADM&&!ow) return done('Scegli il destinatario.');
+    if(sj.length<2) return done('Scrivi un oggetto.');
+    if(bd.length<2) return done('Scrivi il messaggio.');
+    var rn=await SB.rpc('tessera_ticket_open',{p_subject:sj,p_body:bd,p_owner:ADM?ow:null});
+    if(rn.error) return done('Non inviato: '+rn.error.message);
+    S.tkTo=null; await loadTk(); await openTk(rn.data); render(false); toast('Messaggio inviato'); return;
+  }
+  if(k==='tkreply'){
+    var b2=g('body'); if(!b2) return done('Scrivi il messaggio.');
+    var rr=await SB.rpc('tessera_ticket_reply',{p_ticket:TK.open,p_body:b2});
+    if(rr.error) return done('Non inviato: '+rr.error.message);
+    await openTk(TK.open); render(false); toast('Inviato'); return;
   }
   if(k==='code'){
     var rc=await SB.rpc('tessera_redeem',{p_code:g('code')});
