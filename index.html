@@ -253,7 +253,9 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .field input:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)}
 .v.enter{animation:vin .7s cubic-bezier(.2,.8,.2,1) both}
 @keyframes vin{from{opacity:0;transform:perspective(1100px) translateY(24px) rotateX(-10deg)}}
-.hero2{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding-block:30px 10px}
+.hero2{display:grid;grid-template-columns:1fr;justify-items:center;text-align:center;gap:0;padding-block:34px 6px}
+.hero2 .lead{margin-inline:auto}
+.hero2 .ctas{justify-content:center}
 .hero2>*{min-width:0}
 .scene{perspective:1000px;display:grid;place-items:center;padding:36px 14px 22px}
 .rig{position:relative;width:min(100%,360px);transform-style:preserve-3d;will-change:transform}
@@ -316,7 +318,20 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .scn form input::placeholder{color:rgba(255,255,255,.6);text-transform:none}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:60}
 #toast.show{opacity:1;transform:translate(-50%,0)}
-@media (max-width:820px){.hero2{grid-template-columns:1fr;gap:12px}.steps3{grid-template-columns:1fr}.addf{grid-template-columns:1fr}}
+/* carosello automatico delle card (landing) */
+.reel{position:relative;margin:14px calc(50% - 50vw) 0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.reel-track{display:flex;width:max-content;padding:26px 0 34px;animation:reel var(--reel-t,80s) linear infinite;will-change:transform}
+.reel:hover .reel-track,.reel:focus-within .reel-track{animation-play-state:paused}
+.rc{flex:none;width:300px;margin-right:20px;text-align:center}
+.rc .card{width:100%;text-align:left;box-shadow:0 26px 40px -26px rgba(10,15,60,.55)}
+.rc .card::after{display:none}
+.rl{margin-top:14px;font-weight:700;font-size:14px;color:var(--muted)}
+@keyframes reel{to{transform:translateX(-50%)}}
+.field select{appearance:none;-webkit-appearance:none;padding-right:42px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239aa1ba' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+@media (max-width:820px){.rc{width:260px}}
+@media (prefers-reduced-motion:reduce){.reel{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.reel-track{animation:none}.rc[aria-hidden=true]{display:none}}
+
+@media (max-width:820px){.steps3{grid-template-columns:1fr}.addf{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){.coin,.cs,.flipper,.v.enter,.cl,.ov{animation:none!important}}
 
 /* pannello cliente */
@@ -593,14 +608,13 @@ function cardView(){
 }
 function cardLink(c){return location.href.split('#')[0].split('?')[0]+'#c='+c.secret;}
 function home(){
-  var strip=TRADES.map(function(t){return '<button class="tchip" data-a="trade" data-k="'+t.k+'" aria-pressed="'+(t.k===S.trade)+'">'+ico(t.ico)+esc(t.label)+'</button>';}).join('');
+  var set=function(dup){return TRADES.map(function(t){var o=demoOf(t.k);return '<div class="rc"'+(dup?' aria-hidden="true"':'')+'>'+cardHtml(o,Math.round(o.slots*.6),'Il tuo cliente')+'<p class="rl">'+esc(t.label)+'</p></div>';}).join('');};
   return '<section class="hero2"><div><p class="eyebrow"><i>'+ico('sparkle')+'</i>Card fedeltà digitale per attività locali</p>'+
   '<h1 class="big">Fai tornare i clienti.<br><em>Senza tessere di carta.</em></h1>'+
-  '<p class="lead">Scegli il tuo mestiere e guarda la tua card. Provala 3 giorni, gratis.</p>'+
-  '<div class="ctas"><button class="btn primary" data-a="reg">Prova 3 giorni gratis</button><button class="btn" data-a="login">Ho già un account</button></div></div>'+
-  '<div><div class="scene" id="scene"><div class="rig" id="rig"><div class="cs" id="cs"></div><div class="coin c1" id="k1"></div><div class="coin c2" id="k2"></div><div class="coin c3">+1</div></div></div>'+
-  '<p class="cap" id="cap"></p><p class="strip-l">Scegli il tuo mestiere</p><div class="strip" role="group" aria-label="Mestiere">'+strip+'</div></div></section>'+
-  '<ol class="steps3"><li><b>1</b>Scegli il mestiere</li><li><b>2</b>Registrati: 3 giorni di prova</li><li><b>3</b>Gestisci le card dei tuoi clienti</li></ol>'+
+  '<p class="lead">Una card su misura per ogni mestiere: barbieri, bar, pizzerie, negozi e tanti altri. Provala 3 giorni, gratis.</p>'+
+  '<div class="ctas"><button class="btn primary" data-a="reg">Prova 3 giorni gratis</button><button class="btn" data-a="login">Ho già un account</button></div></div></section>'+
+  '<div class="reel" role="region" aria-label="Le card per ogni tipo di attività"><div class="reel-track">'+set(false)+set(true)+'</div></div>'+
+  '<ol class="steps3"><li><b>1</b>Registrati e scegli la tua attività</li><li><b>2</b>Prova gratis per 3 giorni</li><li><b>3</b>Gestisci le card dei tuoi clienti</li></ol>'+
   '<p class="fine">Finita la prova, attivi il tuo profilo con un codice che ti inviamo per email dopo il pagamento.</p>';
 }
 function stage(flip){
@@ -620,8 +634,8 @@ function auth(){
   '<p class="err"></p><button class="btn primary block" type="submit">Salva la password</button></form></section>';
   var r=S.mode==='reg',t=tradeOf(S.trade);
   return '<section class="narrow"><h2>'+(r?'Crea il tuo pannello':'Bentornato')+'</h2>'+
-  (r?'<p class="small">Mestiere: <b>'+esc(t.label)+'</b> · <button class="link" data-a="home">cambia</button></p>':'')+
   '<form data-f="auth" novalidate style="margin-top:14px">'+
+  (r?'<div class="field"><label for="a0">Tipo di attività</label><select id="a0" name="trade">'+TRADES.map(function(x){return '<option value="'+x.k+'"'+(x.k===t.k?' selected':'')+'>'+esc(x.label)+'</option>';}).join('')+'</select></div>':'')+
   (r?'<div class="field"><label for="a1">Nome dell’attività</label><input id="a1" name="biz" type="text" maxlength="28" value="'+esc(defaults(t.k).name)+'"></div>':'')+
   '<div class="field"><label for="a2">Email</label><input id="a2" name="email" type="email" autocomplete="email"></div>'+
   (r?'<div class="field"><label for="a3">Telefono</label><input id="a3" name="tel" type="tel" autocomplete="tel"><span class="hint">Ti scriviamo via email per l’attivazione.</span></div>':'')+
@@ -692,6 +706,12 @@ function applyFilter(){
 }
 document.addEventListener('input',function(e){if(e.target&&e.target.id==='qs'){S.q=e.target.value;applyFilter();}});
 function go(v){S.view=v;S.err='';S.open=null;render(true);window.scrollTo(0,0);}
+document.addEventListener('change',function(e){
+  var el=e.target; if(!el||el.id!=='a0'||!valid(el.value)) return;
+  var prev=S.trade; S.trade=el.value;
+  var b=$('#a1'); if(b&&(b.value.trim()===''||b.value===defaults(prev).name)) b.value=defaults(S.trade).name;
+  document.documentElement.style.setProperty('--glow',(THEMES[tradeOf(S.trade).theme]||THEMES.cobalto).c1);
+});
 function fail(f,m){var e=f.querySelector('.err'); if(e) e.textContent=m;}
 
 /* ---- lettore QR nel pannello: inquadra la card del cliente e aggiunge un tassello ---- */
@@ -791,7 +811,6 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#scn')) 
 document.addEventListener('click',async function(e){
   var t=e.target.closest('[data-a]'); if(!t) return;
   var a=t.getAttribute('data-a'), id=t.getAttribute('data-id');
-  if(a==='trade'){S.trade=t.getAttribute('data-k');var bs=document.querySelectorAll('.tchip');for(var i=0;i<bs.length;i++)bs[i].setAttribute('aria-pressed',bs[i]===t?'true':'false');stage(true);return;}
   if(a==='flip'){t.classList.toggle('on');return;}
   if(a==='home'){go('home');return;}
   if(a==='reg'||a==='login'){S.mode=a;go('auth');return;}
@@ -835,6 +854,8 @@ document.addEventListener('submit',async function(e){
     var em=g('email').toLowerCase(), pw=g('pw');
     if(!/^\S+@\S+\.\S+$/.test(em)) return done('Inserisci un’email valida.');
     if(S.mode==='reg'){
+      if(!valid(g('trade'))) return done('Scegli il tipo di attività.');
+      S.trade=g('trade');
       if(g('biz').length<2) return done('Inserisci il nome dell’attività.');
       if(g('tel').replace(/\D/g,'').length<6) return done('Inserisci il numero di telefono.');
       if(pw.length<6) return done('La password deve avere almeno 6 caratteri.');

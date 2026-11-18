@@ -1,5 +1,5 @@
 /* Service worker: la card si apre anche con connessione debole o assente. */
-var V='tessera-v7';
+var V='tessera-v8';
 var CORE=['./','index.html','privacy.html','termini.html','manifest.webmanifest','icon-192.png','icon-512.png','apple-touch-icon.png'];
 self.addEventListener('install',function(e){
   e.waitUntil(caches.open(V).then(function(c){return c.addAll(CORE);}).then(function(){return self.skipWaiting();}));
