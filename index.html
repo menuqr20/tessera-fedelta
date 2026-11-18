@@ -298,7 +298,7 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .face.back{position:absolute;inset:0;transform:rotateY(180deg);display:grid;place-content:center;justify-items:center;gap:8px;text-align:center;background:var(--surface);border-radius:24px;padding:20px}
 .qrb{width:190px;max-width:100%;background:#fff;padding:10px;border-radius:14px}.qrb svg{display:block;width:100%;height:auto}
 .macts{display:flex;gap:10px;justify-content:center}
-.scanbtn{margin:0 0 16px}.scanbtn svg{width:22px;height:22px}
+.qsf{margin:14px 0 4px}.scanbtn{margin:0 0 16px}.scanbtn svg{width:22px;height:22px}
 .scn{position:fixed;inset:0;z-index:70;background:#05060d;color:#fff;overflow:hidden}
 .scn video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .scn .top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 24px;background:linear-gradient(rgba(0,0,0,.65),transparent)}
@@ -626,17 +626,18 @@ function panel(){
   }
   h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><b>Profilo attivo</b></div>';
   var rows=A.clients.map(function(c,i){var full=c.pts>=b.slots,p=Math.round(c.pts/b.slots*100);
-    return '<div class="cl" style="--i:'+i+'"><button class="who" data-a="open" data-id="'+c.id+'"><span class="mini">'+ico(t.ico)+'</span><span><b>'+esc(c.name)+'</b><small>'+esc(c.phone||'Apri la card')+'</small></span></button><div class="acts"><span class="cnt">'+c.pts+'/'+b.slots+'</span>'+
-    (full?'<button class="btn sm primary" data-a="reset" data-id="'+c.id+'">Premio ritirato</button>':'<button class="btn sm" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn sm primary" data-a="plus" data-id="'+c.id+'" aria-label="Aggiungi un tassello">+1</button>')+'</div><div class="bar"><i style="width:'+p+'%"></i></div></div>';}).join('');
+    return '<div class="cl" style="--i:'+i+'" data-s="'+esc([c.name,c.phone,c.email,c.code].join(' ').toLowerCase())+'" data-p="'+esc(String(c.phone||'').replace(/\D/g,''))+'"><button class="who" data-a="open" data-id="'+c.id+'"><span class="mini">'+ico(t.ico)+'</span><span><b>'+esc(c.name)+'</b><small>'+esc([c.phone,c.email].filter(Boolean).join(' · ')||'Apri la card')+'</small></span></button><div class="acts"><span class="cnt">'+c.pts+'/'+b.slots+'</span>'+
+    (full?'<button class="btn sm primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn sm" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn sm primary" data-a="plus" data-id="'+c.id+'" aria-label="Aggiungi un tassello">+1</button>')+'</div><div class="bar"><i style="width:'+p+'%"></i></div></div>';}).join('');
   var sw=Object.keys(THEMES).map(function(k,i){var th=THEMES[k];return '<input type="radio" name="theme" id="sw'+i+'" value="'+k+'"'+(k===b.theme?' checked':'')+'><label for="sw'+i+'" style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')" title="'+th.n+'"></label>';}).join('');
-  return h+'<div class="pbox"><h3>Clienti ('+A.clients.length+')</h3><button class="btn primary block scanbtn" type="button" data-a="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Scansiona QR cliente</button><form data-f="cl" class="addf" novalidate><div class="field"><label for="n1">Nome</label><input id="n1" name="name" type="text" maxlength="40"></div><div class="field"><label for="n2">Telefono <span class="opt">(facoltativo)</span></label><input id="n2" name="phone" type="tel"></div><button class="btn primary" type="submit">Crea card</button></form><p class="err"></p>'+
+  return h+'<div class="pbox"><h3>Clienti ('+A.clients.length+')</h3><button class="btn primary block scanbtn" type="button" data-a="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Scansiona QR cliente</button><form data-f="cl" class="addf" novalidate><div class="field"><label for="n1">Nome</label><input id="n1" name="name" type="text" maxlength="40"></div><div class="field"><label for="n2">Telefono <span class="opt">(facoltativo)</span></label><input id="n2" name="phone" type="tel"></div><div class="field"><label for="n3">Email <span class="opt">(facoltativa)</span></label><input id="n3" name="email" type="email" autocomplete="off"></div><button class="btn primary" type="submit">Crea card</button></form><p class="err"></p>'+
+    (A.clients.length?'<div class="field qsf"><label for="qs">Cerca cliente</label><input id="qs" type="search" inputmode="search" autocomplete="off" placeholder="Nome, telefono, email o codice" value="'+esc(S.q||'')+'"></div><p class="small" id="qn" hidden>Nessun cliente trovato.</p>':'')+
     (rows||'<p class="small">Nessun cliente: crea la prima card qui sopra.</p>')+'</div>'+
     '<details class="pbox"><summary>Personalizza la card</summary><form data-f="set" novalidate style="margin-top:14px"><div class="field"><label for="s1">Nome attività</label><input id="s1" name="name" type="text" maxlength="28" value="'+esc(b.name)+'"></div><div class="field"><label for="s2">Premio</label><input id="s2" name="reward" type="text" maxlength="40" value="'+esc(b.reward)+'"></div><div class="field"><label for="s3">Tasselli (3–24)</label><input id="s3" name="slots" type="number" min="3" max="24" value="'+b.slots+'"></div><div class="field"><span class="l">Colore</span><div class="swatches">'+sw+'</div></div><button class="btn primary block" type="submit">Salva</button></form></details></div>';
 }
 function modal(){
   var c=cl(S.open); if(!c) return '';
   return '<div class="ov" data-a="close"><div class="flipper" data-a="flip"><div class="face">'+cardHtml({trade:A.trade,name:A.biz.name,reward:A.biz.reward,slots:A.biz.slots,theme:A.biz.theme},c.pts,c.name)+'</div><div class="face back"><div class="qrb">'+QR.svg(c.code)+'</div><b>'+esc(c.name)+'</b><code>'+esc(c.code)+'</code><span class="small">Tocca per girare la card</span></div></div>'+
-  '<div class="macts"><button class="btn primary" data-a="plus" data-id="'+c.id+'">+1 tassello</button><button class="btn" data-a="close">Chiudi</button></div><div class="macts" style="margin-top:10px"><button class="btn sm" data-a="share" data-id="'+c.id+'">Invia link al cliente</button><button class="btn sm" data-a="copy" data-id="'+c.id+'">Copia link</button></div></div>';
+  '<div class="macts">'+(c.pts>=A.biz.slots?'<button class="btn primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn primary" data-a="plus" data-id="'+c.id+'">+1 tassello</button>')+'<button class="btn" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn" data-a="close">Chiudi</button></div><div class="macts" style="margin-top:10px"><button class="btn sm" data-a="share" data-id="'+c.id+'">Invia link al cliente</button><button class="btn sm" data-a="copy" data-id="'+c.id+'">Copia link</button></div></div>';
 }
 function ost(o){
   if(o.status==='active') return ['ok','Attivo'];
@@ -667,13 +668,21 @@ function render(fresh){
   var inC=v==='card'&&C, inP=(v==='panel'&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
   r.setProperty('--glow',th.c1); if(inP) r.setProperty('--brand',th.b); else r.removeProperty('--brand');
   if(v==='home') stage(false);
+  applyFilter();
 }
+function applyFilter(){
+  var i=$('#qs'); if(!i) return;
+  var q=(S.q||'').trim().toLowerCase(), dg=q.replace(/\D/g,''), rows=document.querySelectorAll('.cl[data-s]'), shown=0;
+  rows.forEach(function(r){var ok=!q||r.getAttribute('data-s').indexOf(q)>-1||(dg.length>=3&&(r.getAttribute('data-p')||'').indexOf(dg)>-1); r.style.display=ok?'':'none'; if(ok) shown++;});
+  var n=$('#qn'); if(n) n.hidden=!(q&&!shown);
+}
+document.addEventListener('input',function(e){if(e.target&&e.target.id==='qs'){S.q=e.target.value;applyFilter();}});
 function go(v){S.view=v;S.err='';S.open=null;render(true);window.scrollTo(0,0);}
 function fail(f,m){var e=f.querySelector('.err'); if(e) e.textContent=m;}
 
 /* ---- lettore QR nel pannello: inquadra la card del cliente e aggiunge un tassello ---- */
-var SC={stream:null,raf:0,det:null,busy:false,last:'',lastT:0,tickT:0,undo:null,cv:null};
-function scRes(m,k,undo){var r=$('#scr'); if(!r) return; r.className='res '+(k||''); r.innerHTML='<span>'+esc(m)+'</span>'+(undo?'<button class="btn sm" type="button" data-a="scundo">Annulla</button>':'');}
+var SC={rid:null,stream:null,raf:0,det:null,busy:false,last:'',lastT:0,tickT:0,undo:null,cv:null};
+function scRes(m,k,act){var r=$('#scr'); if(!r) return; r.className='res '+(k||''); r.innerHTML='<span>'+esc(m)+'</span>'+(act==='undo'?'<button class="btn sm" type="button" data-a="scundo">Annulla</button>':act==='reset'?'<button class="btn sm" type="button" data-a="screset">Svuota card</button>':'');}
 function loadJsQR(){return new Promise(function(ok,ko){
   if(window.jsQR) return ok();
   var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; s.onload=function(){ok();}; s.onerror=function(){ko();}; document.head.appendChild(s);
@@ -740,13 +749,21 @@ async function scanCode(raw,manual){
   var c=findByCode(raw);
   if(!c){scRes('QR non riconosciuto per questa attività','bad'); try{if(navigator.vibrate) navigator.vibrate([60,40,60]);}catch(x){} return;}
   var n=A.biz.slots;
-  if(c.pts>=n){scRes(c.name+': card già completa, consegna il premio','warn'); return;}
+  if(c.pts>=n){SC.rid=c.id; scRes(c.name+': card completa, consegna il premio','warn','reset'); return;}
   var old=c.pts; c.pts=old+1; render(false);
   try{if(navigator.vibrate) navigator.vibrate(25);}catch(x){}
   var u=await SB.from('tessera_clients').update({pts:c.pts}).eq('id',c.id);
   if(u.error){c.pts=old; render(false); scRes('Errore: '+u.error.message,'bad'); return;}
   SC.undo=c.id;
-  scRes(c.name+' · '+c.pts+'/'+n+(c.pts>=n?' · card completa!':''),'ok',true);
+  scRes(c.name+' · '+c.pts+'/'+n+(c.pts>=n?' · card completa!':''),'ok','undo');
+}
+async function resetScan(){
+  var c=SC.rid&&cl(SC.rid); SC.rid=null; if(!c) return;
+  if(!window.confirm('Svuotare la card di '+c.name+'? Riparte da 0 tasselli.')) return;
+  var old=c.pts; c.pts=0; render(false);
+  var u=await SB.from('tessera_clients').update({pts:0}).eq('id',c.id);
+  if(u.error){c.pts=old; render(false); scRes('Errore: '+u.error.message,'bad'); return;}
+  SC.undo=null; scRes(c.name+': card svuotata, riparte da 0','ok');
 }
 async function undoScan(){
   var c=SC.undo&&cl(SC.undo); SC.undo=null; if(!c||c.pts<1) return;
@@ -778,6 +795,7 @@ document.addEventListener('click',async function(e){
   if(a==='scan'){openScan();return;}
   if(a==='scclose'){closeScan();return;}
   if(a==='scundo'){undoScan();return;}
+  if(a==='screset'){resetScan();return;}
   if(a==='share'||a==='copy'){
     var cc=cl(id); if(!cc) return; var lk=cardLink(cc);
     if(a==='share'){window.open(waLink(cc.phone,'Ciao '+cc.name+'! Ecco la tua card fedeltà di '+A.biz.name+': '+lk+'\nMostra il QR alla cassa per ricevere i tasselli.'),'_blank','noopener');return;}
@@ -787,7 +805,7 @@ document.addEventListener('click',async function(e){
   var c=cl(id); if(!c) return; var old=c.pts;
   if(a==='plus') c.pts=Math.min(A.biz.slots,c.pts+1);
   if(a==='minus') c.pts=Math.max(0,c.pts-1);
-  if(a==='reset'){c.pts=0;toast('Card azzerata per '+c.name);}
+  if(a==='reset'){if(!window.confirm('Svuotare la card di '+c.name+'? Riparte da 0 tasselli.')) return; c.pts=0;toast('Card svuotata: '+c.name+' riparte da 0');}
   try{if(navigator.vibrate) navigator.vibrate(12);}catch(x){}
   render(false);
   var u=await SB.from('tessera_clients').update({pts:c.pts}).eq('id',id);
@@ -830,9 +848,12 @@ document.addEventListener('submit',async function(e){
   }
   if(k==='cl'){
     if(g('name').length<2) return done('Inserisci il nome del cliente.');
-    var ri=await SB.from('tessera_clients').insert({owner_id:A.id,name:g('name'),phone:g('phone')||null}).select().single();
+    var row={owner_id:A.id,name:g('name'),phone:g('phone')||null}, em=g('email').toLowerCase(), noEm=false;
+    if(em){ if(!/^\S+@\S+\.\S+$/.test(em)) return done('Email non valida.'); row.email=em; }
+    var ri=await SB.from('tessera_clients').insert(row).select().single();
+    if(ri.error&&row.email&&/email/i.test(ri.error.message)){ delete row.email; noEm=true; ri=await SB.from('tessera_clients').insert(row).select().single(); }
     if(ri.error) return done('Non riuscito: '+ri.error.message);
-    A.clients.unshift(ri.data); render(false); toast('Card creata'); return;
+    A.clients.unshift(ri.data); render(false); toast(noEm?'Card creata, ma l’email non è stata salvata (manca la colonna nel database)':'Card creata'); return;
   }
   if(k==='set'){
     var n=parseInt(g('slots'),10); if(isNaN(n)) n=A.biz.slots; n=Math.max(3,Math.min(24,n));
