@@ -592,6 +592,28 @@ async function loadMe(){
   var o=r.data,c=await SB.from('tessera_clients').select('*').eq('owner_id',o.id).order('created_at',{ascending:false});
   A={id:o.id,email:o.email,trade:o.trade,status:o.status,trial:o.trial_ends_at,biz:{name:o.biz_name,reward:o.reward,slots:o.slots,theme:o.theme},clients:c.data||[]};
 }
+/* ---- export / backup ---- */
+function dl(name,text,type){var b=new Blob([text],{type:type+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
+function csvCell(v){v=v==null?'':String(v);return /[",\n;]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function stamp(){return new Date().toISOString().slice(0,10);}
+function exportOwner(){
+  if(!A)return;
+  var rows=[['nome','telefono','email','codice','tasselli','iscritto_il']];
+  A.clients.forEach(function(c){rows.push([c.name,c.phone,c.email,c.code,c.pts,c.created_at]);});
+  dl('clienti-'+stamp()+'.csv','\ufeff'+rows.map(function(r){return r.map(csvCell).join(';');}).join('\r\n'),'text/csv');
+  toast('Export scaricato');
+}
+async function exportAll(){
+  if(!ADM)return;
+  var out={exported_at:new Date().toISOString()},t=['tessera_owners','tessera_clients','tessera_scans','tessera_codes'];
+  for(var i=0;i<t.length;i++){
+    var all=[],from=0;
+    while(true){var r=await SB.from(t[i]).select('*').range(from,from+999);if(r.error)return toast('Errore: '+r.error.message);all=all.concat(r.data||[]);if(!r.data||r.data.length<1000)break;from+=1000;}
+    out[t[i]]=all;
+  }
+  dl('backup-tessera-'+stamp()+'.json',JSON.stringify(out,null,1),'application/json');
+  toast('Backup scaricato');
+}
 async function loadAdm(){
   var a=await SB.rpc('tessera_is_admin'); if(a.data!==true){ADM=null;return;}
   var o=await SB.from('tessera_owners').select('*').order('created_at',{ascending:false}),c=await SB.from('tessera_clients').select('owner_id'),n={};
@@ -725,7 +747,7 @@ function auth(){
 function codeForm(){return '<form data-f="code" novalidate><div class="field"><label for="c1">Codice di attivazione</label><input id="c1" name="code" type="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX"></div><p class="err"></p><button class="btn primary block" type="submit">Attiva</button></form>';}
 function panel(){
   var b=A.biz,t=tradeOf(A.trade),st=status();
-  var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="logout">Esci</button></div>';
+  var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="expc" title="Scarica i tuoi clienti">Esporta</button><button class="btn sm" data-a="logout">Esci</button></div>';
   if(st==='lock'){
     return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':'La prova è finita')+'</h3><p class="small" style="margin-bottom:14px">Per continuare ti contatteremo via email all’indirizzo <b>'+esc(A.email)+'</b>. Dopo il pagamento ricevi un codice: inseriscilo qui per riattivare il pannello. I tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+'</div></div>';
   }
@@ -758,7 +780,7 @@ function sadmin(){
     return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+'">'+s[1]+'</span>'+
     '<div class="acts wide"><button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
     (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b></span><span class="acts"><a class="btn sm primary" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
-  return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
+  return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
 }
 function seller(){
   if(ADM) return sadmin();
@@ -894,6 +916,8 @@ document.addEventListener('click',async function(e){
   if(a==='forgot'){S.mode='forgot';go('auth');return;}
   if(a==='areg0'||a==='areg1'){S.mode=a==='areg1'?'areg':'reg';render(false);return;}
   if(a==='panel'){go('panel');return;}
+  if(a==='expc'){return exportOwner();}
+  if(a==='expall'){return exportAll();}
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
   if(a==='forget'){lsSet(null);S.secret=null;C=null;history.replaceState(null,'',location.pathname+location.search);go('home');return;}
   if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
