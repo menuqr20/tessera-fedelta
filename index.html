@@ -4,139 +4,194 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#3347ff">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Tessera">
-<title>Tessera Fedeltà</title>
-<link rel="manifest" href="manifest.webmanifest">
+<meta name="description" content="Tessera: la card fedeltà digitale per attività locali. I clienti la tengono sul telefono, tu aggiungi i tasselli con una scansione. Senza tessere di carta.">
+<meta property="og:title" content="Tessera · La card fedeltà per la tua attività">
+<meta property="og:description" content="Fai tornare i tuoi clienti. Senza tessere di carta.">
+<meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>:root{color-scheme:light}body{margin:0}</style>
+<title>Tessera Card Fedeltà</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Concetto: strumento di vendita. In alto i mestieri; scegli quello del cliente e vedi la sua card dentro un telefono.
-   A sinistra la proposta al titolare, a destra l'esperienza del suo cliente finale. Colori e icone cambiano per mestiere. */
 :root{
-  --bg:#eef0f6; --surface:#ffffff; --fg:#10131f; --muted:#596077; --line:#dcdfeb;
-  --brand:#3347ff; --coral:#ff6b4a; --blob-a:.30; --blob-b:.22; --phone:#10131f;
-  --font-display:'Bricolage Grotesque',system-ui,sans-serif; --font-body:'Inter',system-ui,sans-serif;
+  --bg:#f6f7fb;--surface:#ffffff;--fg:#10131f;--muted:#586079;--line:#dfe2ee;--soft:#eceeff;
+  --brand:#3347ff;--brand-fg:#ffffff;--coral:#ff6b4a;--glow:#3347ff;--ok:#15803d;--bad:#b42318;
+  --font-display:'Bricolage Grotesque',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){--bg:#0a0c15;--surface:#141827;--fg:#eef0fa;--muted:#9aa1ba;--line:#242a40;--blob-a:.22;--blob-b:.14;--phone:#262c44;color-scheme:dark}
+  :root:not([data-theme="light"]){--bg:#0a0c15;--surface:#141827;--fg:#eef0fa;--muted:#9aa1ba;--line:#242a40;--soft:#1a2040;--brand:#6c7bff;--brand-fg:#0a0c15;--ok:#4ade80;--bad:#f87171;color-scheme:dark}
 }
-:root[data-theme="dark"]{--bg:#0a0c15;--surface:#141827;--fg:#eef0fa;--muted:#9aa1ba;--line:#242a40;--blob-a:.22;--blob-b:.14;--phone:#262c44;color-scheme:dark}
+:root[data-theme="dark"]{--bg:#0a0c15;--surface:#141827;--fg:#eef0fa;--muted:#9aa1ba;--line:#242a40;--soft:#1a2040;--brand:#6c7bff;--brand-fg:#0a0c15;--ok:#4ade80;--bad:#f87171;color-scheme:dark}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.55;overflow-x:hidden;
-  padding-block:0 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.55;overflow-x:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance}
-h2{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
-h3{font-size:17px;font-weight:700;letter-spacing:-.01em}
 p{margin:0}
-button,input{font:inherit;color:inherit}
+button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:3px}
-.wrap{max-width:1040px;margin:0 auto}
+.wrap{max-width:1080px;margin:0 auto}
+.glow{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.glow i{position:absolute;border-radius:50%;filter:blur(90px);opacity:.22;background:var(--glow);transition:background .6s}
+.glow i:nth-child(1){width:60vmax;height:60vmax;right:-22vmax;top:-26vmax}
+.glow i:nth-child(2){width:44vmax;height:44vmax;left:-20vmax;top:46vh;background:var(--coral);opacity:.12}
 
-.blobs{position:fixed;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
-.blobs i{position:absolute;width:52vmax;height:52vmax;border-radius:50%;filter:blur(80px);transition:background .6s}
-.blobs i:nth-child(1){background:var(--brand);opacity:var(--blob-a);top:-24vmax;right:-18vmax;animation:drift1 24s ease-in-out infinite alternate}
-.blobs i:nth-child(2){background:var(--coral);opacity:var(--blob-b);bottom:-28vmax;left:-20vmax;animation:drift2 30s ease-in-out infinite alternate}
-@keyframes drift1{to{transform:translate(-9vmax,12vmax) scale(1.12)}}
-@keyframes drift2{to{transform:translate(12vmax,-9vmax) scale(.92)}}
-
-/* testata e mestieri */
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:18px 10px}
-.logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:800;font-size:21px;letter-spacing:-.03em;border:0;background:none;cursor:pointer;padding:0}
+/* testata */
+.top{position:sticky;top:0;z-index:30;margin:0 calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));
+  background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{display:flex;align-items:center;gap:9px;font-family:var(--font-display);font-weight:800;font-size:21px;letter-spacing:-.03em;text-decoration:none;color:inherit}
 .logo svg{width:30px;height:30px}
-.logo .a{fill:var(--brand)} .logo .b{fill:none;stroke:#fff;stroke-width:1.6;stroke-dasharray:2.2 3} .logo .c{fill:#fff}
-.seg{display:flex;background:color-mix(in srgb,var(--surface) 80%,transparent);border:1px solid var(--line);border-radius:12px;padding:3px;backdrop-filter:blur(8px)}
-.seg button{border:0;background:none;padding:7px 14px;border-radius:9px;cursor:pointer;font-size:14px;color:var(--muted);font-weight:500}
-.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.proposta{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:6px 0 8px}
-.strip{position:relative;display:flex;gap:8px;overflow-x:auto;padding:4px 2px 14px;scrollbar-width:none;scroll-snap-type:x proximity}
-.strip::-webkit-scrollbar{display:none}
-.tchip{flex:none;scroll-snap-align:start;display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:99px;border:1px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,transparent);cursor:pointer;font-weight:500;font-size:14px;transition:transform .15s,background .2s}
-.tchip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.tchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 8px 18px -10px var(--brand)}
 
-/* pulsanti, campi */
-.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 22px;cursor:pointer;font-weight:600;transition:transform .15s,box-shadow .15s}
-@media (hover:hover){.tchip:hover,.btn:hover:not(:disabled){transform:translateY(-1px)}}
-.btn:active,.tchip:active,.seg button:active{transform:scale(.97)}
-.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:0 10px 24px -12px var(--brand)}
-.btn.sm{padding:7px 13px;font-size:14px;border-radius:10px}
+/* pulsanti e campi */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-weight:600;cursor:pointer;text-decoration:none;transition:transform .15s,box-shadow .15s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn:active{transform:scale(.97)}
+@media (hover:hover){.btn:hover{transform:translateY(-1px)}}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-fg);box-shadow:0 14px 28px -14px var(--brand)}
+.btn.sm{min-height:40px;padding:8px 16px;font-size:14px;border-radius:12px}
 .btn.block{width:100%}
-.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 .field{display:grid;gap:6px;margin-bottom:14px}
-.field label,.field .l{font-size:13px;font-weight:600}
-.field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number]{
-  width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
-.small{font-size:13px;color:var(--muted)}
-.err{color:#dc2626;font-size:13px;min-height:18px;margin-bottom:8px}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .err{color:#f87171}}
-:root[data-theme="dark"] .err{color:#f87171}
-.link{border:0;background:none;color:var(--brand);text-decoration:underline;cursor:pointer;padding:0}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .link{color:color-mix(in srgb,var(--brand) 60%,#fff)}}
-:root[data-theme="dark"] .link{color:color-mix(in srgb,var(--brand) 60%,#fff)}
+.field>label,.field>.l{font-size:13px;font-weight:600}
+.field .opt{font-weight:400;color:var(--muted)}
+.field input[type=text],.field input[type=email],.field input[type=tel],.field select{width:100%;min-height:48px;padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:16px}
+.field input:focus,.field select:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)}
+.hint{font-size:12px;color:var(--muted)}
 
-/* animazioni di ingresso (solo quando si cambia schermata) */
-.in{animation:rise .8s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0) * 90ms + 80ms)}
-@keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
-.still .in,.still .slot.on,.still .mark path{animation:none!important}
-.still .mark path{stroke-dashoffset:0}
+/* hero */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center;padding-block:36px 28px}
+.hero>*{min-width:0}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px 6px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:13px;font-weight:600;margin-bottom:18px}
+.eyebrow i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--soft);color:var(--brand)}
+.eyebrow svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+h1.big{font-size:clamp(36px,6.6vw,54px);font-weight:800;letter-spacing:-.04em;line-height:.98}
+h1.big em{font-style:normal;color:var(--brand);background:linear-gradient(var(--coral),var(--coral)) 0 96%/100% .11em no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding-bottom:.06em;animation:ul .9s .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ul{from{background-size:0 .11em}to{background-size:100% .11em}}
+.lead{font-size:clamp(17px,2.4vw,20px);color:var(--muted);margin:20px 0 26px;max-width:34em}
+.ctas{display:flex;flex-wrap:wrap;gap:12px}
+.ticks{list-style:none;margin:24px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--muted)}
+.ticks li{display:flex;align-items:center;gap:7px}
+.ticks svg{width:16px;height:16px;fill:none;stroke:var(--ok);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.stage{position:relative;padding:24px 0 80px}
+.stage .float{animation:bob 6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-8px) rotate(.6deg)}}
+.chipq{position:absolute;right:14px;bottom:0;z-index:3;width:86px;padding:7px;border-radius:16px;background:#fff;box-shadow:0 18px 36px -14px rgba(10,14,40,.5),0 0 0 1px rgba(16,19,31,.08);animation:bob 5s ease-in-out -2s infinite}
+.chipq svg{display:block;width:100%;height:auto}
+.chipq::after{content:"";position:absolute;left:8px;right:8px;height:2px;border-radius:2px;background:var(--brand);box-shadow:0 0 10px var(--brand);animation:sc 2s ease-in-out infinite}
+@keyframes sc{0%,100%{top:12px}50%{top:calc(100% - 14px)}}
+.chipp{position:absolute;right:16px;top:6px;z-index:3;padding:8px 14px;border-radius:99px;background:#16a34a;color:#fff;font-weight:800;font-size:15px;box-shadow:0 14px 28px -10px rgba(22,163,74,.7);animation:pop 3.6s ease-in-out infinite}
+@keyframes pop{0%,12%{transform:scale(0) rotate(-12deg);opacity:0}22%{transform:scale(1.12) rotate(4deg);opacity:1}30%,78%{transform:scale(1) rotate(0);opacity:1}92%,100%{transform:translateY(-14px);opacity:0}}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:14px 2px 6px;margin-top:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.strip::-webkit-scrollbar{display:none}
+.strip-l{font-size:13px;font-weight:600;color:var(--muted);margin-top:10px}
+.tchip{flex:none;scroll-snap-align:center;display:flex;align-items:center;gap:8px;padding:9px 15px 9px 11px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .2s,color .2s,transform .15s}
+.tchip svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tchip:active{transform:scale(.96)}
+.tchip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
-/* proposta + telefono */
-.pitch{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding-block:24px 40px}
-.pitch>*{min-width:0}
-.eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:13px;font-weight:600;padding:6px 14px 6px 8px;border-radius:99px;background:color-mix(in srgb,var(--surface) 80%,transparent);border:1px solid var(--line);margin-bottom:22px}
-.eyebrow .ib{width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center}
-.eyebrow svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-h1.big{font-size:clamp(38px,6.4vw,66px);font-weight:800;letter-spacing:-.035em;line-height:1}
-.w{display:inline-block}
-.mark{position:relative;color:var(--brand)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mark{color:color-mix(in srgb,var(--brand) 55%,#fff)}}
-:root[data-theme="dark"] .mark{color:color-mix(in srgb,var(--brand) 55%,#fff)}
-.mark svg{position:absolute;left:-2%;bottom:-.1em;width:104%;height:.2em;overflow:visible}
-.mark path{fill:none;stroke:var(--coral);stroke-width:5;stroke-linecap:round;stroke-dasharray:300;stroke-dashoffset:300;animation:draw 1s ease-out 1s forwards}
-@keyframes draw{to{stroke-dashoffset:0}}
-.lead{font-size:18px;color:var(--muted);margin-top:22px;max-width:46ch}
-.ticks{list-style:none;padding:0;margin:22px 0 0;display:grid;gap:10px}
-.ticks li{display:flex;gap:12px;align-items:flex-start}
-.ticks li::before{content:"";flex:none;width:20px;height:20px;margin-top:2px;border-radius:50%;background:var(--brand) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/70% no-repeat}
-.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;align-items:center}
+/* sezioni */
+section.s{padding-block:56px}
+.kick{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+h2.t{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.035em;line-height:1.02;max-width:18em}
+.sub{color:var(--muted);font-size:17px;margin-top:14px;max-width:36em}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+.grid3>*{min-width:0}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px}
+.box h3{font-size:19px;margin-bottom:8px}
+.box p{color:var(--muted);font-size:15px}
+.box .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--soft);color:var(--brand);margin-bottom:16px}
+.box .ic svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px;counter-reset:st}
+.steps>*{min-width:0}
+.step{counter-increment:st;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:24px;display:flex;flex-direction:column;gap:14px}
+.step::before{content:counter(st);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:var(--brand-fg);font-weight:800;font-family:var(--font-display)}
+.step h3{font-size:20px}
+.step p{color:var(--muted);font-size:15px}
+.vis{margin-top:auto;padding-top:6px;display:flex;align-items:center;justify-content:center;min-height:130px;border-radius:16px;background:var(--bg);border:1px solid var(--line)}
+.vis .qrm{width:104px;padding:7px;border-radius:12px;background:#fff;box-shadow:0 0 0 1px rgba(16,19,31,.1)}
+.vis .qrm svg{display:block;width:100%;height:auto}
+.vis .sw{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:14px}
+.vis .sw b{width:30px;height:30px;border-radius:50%;box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line)}
+.vis .scanmock{position:relative;width:112px;height:112px;border-radius:16px;background:linear-gradient(150deg,#1b2036,#0b0e1c)}
+.vis .scanmock::before{content:"";position:absolute;inset:18px;background:
+  linear-gradient(var(--brand),var(--brand)) top left/22px 3px no-repeat,linear-gradient(var(--brand),var(--brand)) top left/3px 22px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) top right/22px 3px no-repeat,linear-gradient(var(--brand),var(--brand)) top right/3px 22px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) bottom left/22px 3px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom left/3px 22px no-repeat,
+  linear-gradient(var(--brand),var(--brand)) bottom right/22px 3px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom right/3px 22px no-repeat}
+.vis .scanmock i{position:absolute;left:26px;right:26px;height:2px;background:var(--brand);box-shadow:0 0 10px var(--brand);animation:sc2 2.2s ease-in-out infinite}
+@keyframes sc2{0%,100%{top:28px}50%{top:82px}}
+.vis .plus{position:absolute;right:-10px;top:-8px;background:#16a34a;color:#fff;font-weight:800;border-radius:99px;padding:4px 11px;font-size:14px}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:30px}
+.feat>*{min-width:0}
 
-.phonewrap{display:grid;justify-items:center;position:relative;padding:10px}
-.phonewrap::before{content:"";position:absolute;width:min(78%,330px);top:40px;bottom:40px;border-radius:44px;background:linear-gradient(150deg,var(--coral),color-mix(in srgb,var(--coral) 40%,#fff));transform:rotate(-6deg) translate(-26px,8px);opacity:.85}
-.phone{position:relative;width:100%;max-width:356px;border:10px solid var(--phone);border-radius:46px;background:var(--surface);overflow:hidden;
-  box-shadow:0 40px 70px -34px rgba(10,14,40,.55),0 0 0 1px color-mix(in srgb,var(--fg) 14%,transparent)}
-.notch{position:absolute;top:8px;left:50%;width:88px;height:24px;margin-left:-44px;border-radius:99px;background:var(--phone);z-index:3}
-.screen{min-height:660px;padding:46px 20px 24px;display:flex;flex-direction:column;gap:16px;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--brand) 13%,var(--surface)),var(--surface) 55%)}
-.s-top{display:flex;align-items:center;gap:10px}
-.badge{width:40px;height:40px;border-radius:13px;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none;transform:rotate(-5deg)}
-.badge svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.s-name{font-family:var(--font-display);font-weight:800;font-size:17px;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
-.s-sub{font-size:12px;color:var(--muted)}
-h1.s-h{font-size:clamp(30px,9.4vw,36px);font-weight:800;letter-spacing:-.03em;line-height:1}
-.s-lead{font-size:14px;color:var(--muted)}
-.screen .float{margin-top:2px}
-.screen .actions{display:grid;gap:8px;margin-top:auto}
-.float{width:100%;animation:float 6s ease-in-out infinite}
-@keyframes float{50%{transform:translateY(-8px)}}
-.sform{display:flex;flex-direction:column;gap:0}
-.sform h2{margin:6px 0 4px;font-size:26px}
-.sform .small{margin-bottom:18px}
-.screen .pagehead{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.screen .pagehead h2{font-size:22px}
-.done{padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#16a34a 14%,var(--surface));border:1px solid color-mix(in srgb,#16a34a 35%,var(--line));font-size:13px}
-.screen .small.c{text-align:center}
-@media (max-width:860px){.pitch{grid-template-columns:1fr;gap:28px}}
+/* crea la tua card */
+.make{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:30px;align-items:start}
+.make>*{min-width:0}
+.formbox{background:var(--surface);border:1px solid var(--line);border-radius:24px;padding:24px}
+.formbox h3{font-size:20px;margin-bottom:16px}
+.preview{position:sticky;top:84px}
+.preview .cap{font-size:13px;color:var(--muted);text-align:center;margin-top:12px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper output{min-width:48px;text-align:center;font-family:var(--font-display);font-weight:800;font-size:24px}
+.stepper button{width:48px;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--bg);font-size:22px;font-weight:600;cursor:pointer;touch-action:manipulation}
+.stepper button:active{transform:scale(.94)}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatches input{position:absolute;opacity:0;pointer-events:none}
+.swatches label{width:40px;height:40px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line)}
+.swatches input:checked+label{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--fg)}
+.swatches input:focus-visible+label{outline:2px solid var(--brand);outline-offset:4px}
+.sep{height:1px;background:var(--line);margin:20px 0}
+.err{color:var(--bad);font-size:13px;min-height:18px;margin:0 0 8px}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin:2px 0 14px}
+.consent input{width:20px;height:20px;margin-top:1px;flex:none;accent-color:var(--brand)}
+.done{display:none;text-align:center;padding:12px 4px}
+.done.on{display:block}
+.done .ok{width:56px;height:56px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--ok) 16%,var(--surface));color:var(--ok)}
+.done .ok svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.done h3{margin-bottom:8px}
+.done p{color:var(--muted);margin-bottom:16px}
+.done pre{text-align:left;white-space:pre-wrap;font:13px/1.5 var(--font-body);background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 16px}
+
+/* faq */
+.faq{margin-top:26px;display:grid;gap:10px;max-width:760px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:0 20px}
+.faq summary{cursor:pointer;list-style:none;padding:18px 0;font-weight:600;display:flex;justify-content:space-between;gap:14px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:22px;line-height:1;color:var(--brand);flex:none;transition:transform .2s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{color:var(--muted);padding:0 0 18px}
+
+.final{margin-block:20px 40px;padding:44px 26px;border-radius:32px;text-align:center;color:#fff;background:linear-gradient(150deg,#3b4dff,#1b22b5);position:relative;overflow:hidden}
+.final::before{content:"";position:absolute;inset:0;background:repeating-radial-gradient(circle at 108% 108%,rgba(255,255,255,.07) 0 2px,transparent 2px 18px),radial-gradient(circle at 0 0,rgba(255,255,255,.2),transparent 50%)}
+.final>*{position:relative}
+.final h2{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.035em;margin:0 auto 12px;max-width:16em}
+.final p{opacity:.85;margin:0 auto 24px;max-width:30em}
+.final .btn{background:#fff;color:#1b22b5;border-color:#fff}
+footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:13px;color:var(--muted);text-align:center}
+
+/* reveal */
+.js .rv{opacity:0;transform:translateY(16px);transition:opacity .6s ease,transform .6s ease}
+.js .rv.in{opacity:1;transform:none}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:22px;padding-block:22px 18px}
+  .make{grid-template-columns:1fr}
+  .preview{position:static;order:-1}
+  .grid3,.steps,.feat{grid-template-columns:1fr}
+  section.s{padding-block:40px}
+  .stage{max-width:440px;margin:0 auto;width:100%}
+  .chipq{width:74px}
+}
 @media (max-width:560px){
-  .phone{border:0;border-radius:30px;max-width:420px;box-shadow:0 30px 50px -30px rgba(10,14,40,.5),0 0 0 1px var(--line)}
-  .notch{display:none}
-  .screen{padding-top:22px;min-height:0}
-  .phonewrap{padding:0}
-  .phonewrap::before{display:none}
+  .ctas .btn{width:100%}
+  .final{padding:34px 18px;border-radius:26px}
+  .top .btn{padding:8px 14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .js .rv{opacity:1;transform:none}
 }
 
 /* LA CARD */
@@ -179,175 +234,140 @@ h1.s-h{font-size:clamp(30px,9.4vw,36px);font-weight:800;letter-spacing:-.03em;li
 .card footer b{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.01em;overflow-wrap:anywhere}
 .card footer .r{text-align:right;font-variant-numeric:tabular-nums;flex:none}
 
-/* gestore */
-.admhead{display:flex;align-items:center;gap:12px;padding-block:16px 8px}
-.admhead .badge{width:46px;height:46px}
-.admin{display:grid;grid-template-columns:1.2fr .8fr;gap:20px;padding-block:12px;align-items:start}
-.admin>*{min-width:0}
-.box{background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:20px;padding:22px}
-.box h2{margin-bottom:12px}
-.panel{background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:22px;padding:28px;max-width:430px;margin:36px auto;backdrop-filter:blur(8px)}
-.panel h2{margin-bottom:6px}
-.panel .small{margin-bottom:20px}
-.row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;padding:14px 0;border-top:1px solid var(--line)}
-.row>div:first-child{flex:1 1 170px;min-width:0}
-.row:first-of-type{border-top:0}
-.nm{font-weight:600;overflow-wrap:anywhere}
-.em{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
-.bar{flex:0 0 100%;height:6px;border-radius:99px;background:var(--line);overflow:hidden}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--coral));border-radius:99px}
-.acts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-.pill{font-size:12px;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,#16a34a 16%,var(--surface));color:#15803d;font-weight:700}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill{color:#4ade80}}
-:root[data-theme="dark"] .pill{color:#4ade80}
-.cnt{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);min-width:44px;text-align:right}
-.swatches{display:flex;gap:10px;flex-wrap:wrap}
-.swatches input{position:absolute;opacity:0;pointer-events:none}
-.swatches label{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
-.swatches input:checked+label{box-shadow:0 0 0 2px var(--fg)}
-.swatches input:focus-visible+label{outline:2px solid var(--brand);outline-offset:3px}
-@media (max-width:860px){.admin{grid-template-columns:1fr}}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:11px 20px;border-radius:12px;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
-.toast.show{opacity:1}
-
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
-  .mark path{stroke-dashoffset:0}
-}
-/* link per mestiere */
-.share{margin-top:22px;display:grid;gap:8px}
-.sharebox{display:flex;gap:8px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 6px 6px 12px;max-width:520px}
-.sharebox code{flex:1;min-width:0;overflow-x:auto;white-space:nowrap;font-size:13px;user-select:all;scrollbar-width:none}
-.sharebox code::-webkit-scrollbar{display:none}
-@media (max-width:860px){.share{order:7;margin-top:0}}
-/* ottimizzazione smartphone */
-html{-webkit-text-size-adjust:100%}
-button,.tchip,.btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.field input[type=text],.field input[type=email],.field input[type=password],.field input[type=number]{font-size:16px}
-.strip{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
-@media (max-width:860px){
-  .pitch>div:first-child{display:contents}
-  .eyebrow{order:1;justify-self:start;margin:0}
-  h1.big{order:2}
-  .phonewrap{order:3}
-  .lead{order:4;margin-top:0}
-  .ticks{order:5;margin-top:0}
-  .cta{order:6;margin-top:0}
-  .pitch{padding-block:8px 24px;gap:20px}
-}
-@media (max-width:560px){
-  .blobs i{filter:blur(56px)}
-  .top{flex-direction:column;align-items:stretch;gap:12px;padding-block:14px 6px}
-  .logo{align-self:flex-start}
-  .seg{width:100%;backdrop-filter:none}
-  .seg button{flex:1;padding:11px 6px;font-size:13px}
-  .tchip{padding:11px 16px;min-height:44px}
-  h1.big{font-size:clamp(32px,10vw,42px)}
-  .lead{font-size:16px}
-  .cta .btn{width:100%}
-  .cta .small{width:100%;text-align:center}
-  .btn{min-height:46px}
-  .btn.sm{min-height:44px;padding:8px 14px}
-  .eyebrow{backdrop-filter:none}
-  .box{padding:16px;border-radius:18px}
-  .panel{padding:22px;margin:20px auto;backdrop-filter:none}
-  .swatches label{width:42px;height:42px}
-  .screen{padding:20px 16px}
-  .admhead{padding-block:8px}
-}
-/* smartphone: barra in basso a portata di pollice, meno scorrimento, sfondo leggero */
-@media (max-width:560px){
-  body{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-  .top{flex-direction:row;align-items:center;padding-block:12px 4px}
-  .seg{position:fixed;left:0;right:0;bottom:0;z-index:15;width:auto;border-radius:0;border:0;border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));gap:8px;background:color-mix(in srgb,var(--surface) 96%,transparent)}
-  .seg button{min-height:48px;border-radius:12px;font-size:14px;font-weight:600}
-  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-  h1.big{font-size:clamp(28px,8.6vw,34px)}
-  .s-lead{display:none}
-  .screen{gap:12px}
-  .pitch{gap:14px;padding-block:4px 20px}
-  .proposta{margin:2px 0 6px}
-  .strip{padding-bottom:8px}
-  .blobs i{filter:none}
-  .blobs i:nth-child(1){background:radial-gradient(closest-side,var(--brand),transparent)}
-  .blobs i:nth-child(2){background:radial-gradient(closest-side,var(--coral),transparent)}
-}
-/* QR della card + lettore */
-.qrbox{display:flex;gap:14px;align-items:center;margin-top:16px;padding:14px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
-.qrbox .qr{flex:none;width:118px;height:118px;border-radius:12px;overflow:hidden;box-shadow:0 0 0 1px rgba(16,19,31,.12)}
-.qrbox .qr svg{display:block;width:100%;height:100%}
-.qrbox b{font-family:var(--font-display);font-size:16px;letter-spacing:-.01em}
-.qrbox p{margin:4px 0 8px;font-size:13px;line-height:1.4;color:var(--muted)}
-.qrbox code{display:inline-block;font-size:13px;font-weight:600;letter-spacing:.08em;padding:4px 9px;border-radius:8px;background:color-mix(in srgb,var(--brand) 10%,var(--surface));user-select:all}
-.scanbtn{display:flex;align-items:center;justify-content:center;gap:10px}
-.scanbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.scan{position:fixed;inset:0;z-index:60;background:#070912;color:#fff;display:flex;flex-direction:column;gap:14px;overflow-y:auto;
-  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(18px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));-webkit-overflow-scrolling:touch}
-.scan .sbar{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;max-width:440px;margin:0 auto}
-.scan .sbar b{font-family:var(--font-display);font-size:20px;letter-spacing:-.02em}
-.scan .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
-.scan .btn.primary{background:var(--brand);border-color:var(--brand)}
-.vf{position:relative;width:100%;max-width:440px;aspect-ratio:1;margin:0 auto;border-radius:24px;overflow:hidden;background:#0d1020;box-shadow:0 0 0 1px rgba(255,255,255,.14)}
-.vf video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.vf .fr2{position:absolute;inset:16%;pointer-events:none;border-radius:18px;
-  background:linear-gradient(var(--brand),var(--brand)) top left/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) top left/4px 36px no-repeat,
-  linear-gradient(var(--brand),var(--brand)) top right/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) top right/4px 36px no-repeat,
-  linear-gradient(var(--brand),var(--brand)) bottom left/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom left/4px 36px no-repeat,
-  linear-gradient(var(--brand),var(--brand)) bottom right/36px 4px no-repeat,linear-gradient(var(--brand),var(--brand)) bottom right/4px 36px no-repeat}
-.vf .fr2::after{content:"";position:absolute;left:6%;right:6%;height:2px;border-radius:2px;background:var(--brand);box-shadow:0 0 14px var(--brand);animation:scanline 2.2s ease-in-out infinite}
-@keyframes scanline{0%,100%{top:8%}50%{top:90%}}
-.vf .smsg{position:absolute;left:12px;right:12px;bottom:12px;padding:9px 12px;border-radius:12px;background:rgba(7,9,18,.72);font-size:13px;text-align:center}
-.vf.off .fr2,.vf.off video{display:none}
-.vf.off{aspect-ratio:auto}
-.vf.off .smsg{position:static;margin:0;border-radius:0;background:rgba(255,255,255,.05);padding:16px 14px}
-.sres{width:100%;max-width:440px;margin:0 auto;min-height:64px;padding:14px 16px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);font-size:14px;display:flex;align-items:center;gap:12px}
-.sres.ok{background:rgba(22,163,74,.2);border-color:rgba(74,222,128,.55)}
-.sres.bad{background:rgba(220,38,38,.2);border-color:rgba(248,113,113,.55)}
-.sres b{display:block;font-size:16px}
-.sres .tick{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14);font-size:18px}
-.scan form{display:flex;gap:8px;width:100%;max-width:440px;margin:0 auto}
-.scan input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;text-transform:uppercase;letter-spacing:.05em}
-.scan input::placeholder{color:rgba(255,255,255,.5);text-transform:none;letter-spacing:0}
-.scan .demo{width:100%;max-width:440px;margin:0 auto;display:grid;gap:8px}
-.scan .demo span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.6)}
-.scan .chips{display:flex;flex-wrap:wrap;gap:8px}
-button.qr{border:0;padding:0;background:#fff;cursor:zoom-in;position:relative;display:block}
-button.qr::after{content:"";position:absolute;right:5px;bottom:5px;width:22px;height:22px;border-radius:50%;background:rgba(16,19,31,.82) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7'/%3E%3C/svg%3E") center/12px no-repeat}
-.qrbig{position:fixed;inset:0;z-index:70;background:#070912;display:grid;place-items:center;align-content:center;gap:18px;text-align:center;color:#fff;cursor:zoom-out;
-  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));animation:qrin .22s ease-out}
-@keyframes qrin{from{opacity:0}to{opacity:1}}
-.qrbig .sq{width:min(86vw,62vh,460px);aspect-ratio:1;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 30px 70px -20px rgba(0,0,0,.7)}
-.qrbig .sq svg{display:block;width:100%;height:100%}
-.qrbig code{font-size:20px;font-weight:700;letter-spacing:.12em}
-.qrbig p{margin:0;font-size:14px;color:rgba(255,255,255,.72)}
-@media (prefers-reduced-motion:reduce){.vf .fr2::after{animation:none;top:50%}}
-/* installazione come app */
-.instbtn{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px}
-.instbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.sheetbg{position:fixed;inset:0;z-index:80;background:rgba(7,9,18,.72);display:flex;align-items:flex-end;justify-content:center;animation:qrin .2s ease-out}
-.sheet{width:100%;max-width:480px;background:var(--surface);color:var(--fg);border-radius:24px 24px 0 0;padding:20px 20px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -20px 60px -20px rgba(0,0,0,.5);animation:sheetup .28s cubic-bezier(.2,.9,.3,1)}
-@keyframes sheetup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.sheet h3{margin:0 0 4px;font-family:var(--font-display);font-size:21px;letter-spacing:-.02em}
-.sheet .sub{margin:0 0 14px;font-size:14px;color:var(--muted)}
-.sheet ol{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:10px;counter-reset:st}
-.sheet li{counter-increment:st;display:flex;gap:12px;align-items:center;font-size:15px;line-height:1.35}
-.sheet li::before{content:counter(st);flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--brand);color:#fff;font-weight:700;font-size:14px}
-.sheet li span{min-width:0}
-.sheet li svg{width:20px;height:20px;vertical-align:-4px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-@media (display-mode:standalone){.share,.instbtn{display:none!important}}
-html{overscroll-behavior-y:none}
-body{-webkit-touch-callout:none}
-input,code,.qrbox code{-webkit-touch-callout:default}
+.static .slot.on{animation:none!important;transform:rotate(var(--rot,0deg))}
+.static .slot.gift.on{animation:glow 2.2s ease-in-out infinite!important}
+.card{--c1:#3347ff;--c2:#1b22b5;--gift:#ffd166}
 </style>
 
-<div class="blobs" aria-hidden="true"><i></i><i></i></div>
-<div id="app"></div>
-<div id="toast" class="toast" role="status"></div>
+<div class="glow" aria-hidden="true"><i></i><i></i></div>
+
+<header class="top"><div class="wrap">
+  <a class="logo" href="#" data-top aria-label="Tessera, torna in cima"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="var(--brand)"/><circle cx="24" cy="24" r="17" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="2.4 3.6"/><path d="M24 14.5L26.35 20.76L33.04 21.06L27.8 25.24L29.58 31.69L24 28L18.42 31.69L20.2 25.24L14.96 21.06L21.65 20.76Z" fill="#fff"/></svg>tessera</a>
+  <button class="btn primary sm" data-go="crea">Crea la tua card</button>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <p class="eyebrow rv"><i><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></i>Card fedeltà digitale per attività locali</p>
+      <h1 class="big rv">Fai tornare i tuoi clienti.<br><em>Senza tessere di carta.</em></h1>
+      <p class="lead rv">Una card con il tuo nome e il tuo premio. I clienti la tengono sul telefono, tu aggiungi i tasselli con una scansione.</p>
+      <div class="ctas rv">
+        <button class="btn primary" data-go="crea">Crea la tua card</button>
+        <button class="btn" data-go="come">Guarda come funziona</button>
+      </div>
+      <ul class="ticks rv">
+        <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Nessuna app da installare</li>
+        <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Si apre dal telefono</li>
+        <li><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Con i tuoi colori</li>
+      </ul>
+    </div>
+    <div>
+      <div class="stage rv">
+        <div class="chipp" aria-hidden="true">+1</div>
+        <div class="chipq" aria-hidden="true" id="heroqr"></div>
+        <div class="float" id="herocard"></div>
+      </div>
+      <p class="strip-l">Scegli il tuo mestiere</p>
+      <div class="strip" id="strip" role="group" aria-label="Mestiere"></div>
+    </div>
+  </section>
+
+  <section class="s">
+    <p class="kick rv">Il problema</p>
+    <h2 class="t rv">Le tessere di carta non funzionano.</h2>
+    <div class="grid3">
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h16v12H4zM8 7V5h8v2M9 12h6"/></svg></div><h3>Si perdono</h3><p>Finiscono in un cassetto o nel portafoglio di casa. Il telefono, invece, ce l'hanno sempre in tasca.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg></div><h3>Non sai chi torna</h3><p>Un timbro non ti dice chi è il cliente né da quanto manca. Con una card col suo nome sì.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 017-2.6A4 4 0 0119 11c0 5.4-7 10-7 10z"/></svg></div><h3>Poca voglia di riempirle</h3><p>Una tessera anonima non dà un motivo per tornare. Un premio chiaro, con il tuo nome sopra, sì.</p></div>
+    </div>
+  </section>
+
+  <section class="s" id="come">
+    <p class="kick rv">Come funziona</p>
+    <h2 class="t rv">Tre passaggi, nessuna complicazione.</h2>
+    <div class="steps">
+      <div class="step rv"><h3>Crei la tua card</h3><p>Scegli il mestiere, il nome, il premio e i colori. Ci vogliono due minuti.</p><div class="vis"><div class="sw" id="vsw"></div></div></div>
+      <div class="step rv"><h3>Il cliente la apre dal telefono</h3><p>Inquadra il QR alla cassa, si registra una volta sola e la aggiunge alla Home.</p><div class="vis"><div class="qrm" id="vqr"></div></div></div>
+      <div class="step rv"><h3>Scansioni e premi</h3><p>Inquadri il QR del cliente e il tassello si aggiunge. Alla fine, il premio.</p><div class="vis"><div class="scanmock"><i></i><span class="plus">+1</span></div></div></div>
+    </div>
+    <p class="rv" style="margin-top:22px"><a class="btn" id="demolink" href="demo.html">Prova la card come la vede un cliente</a></p>
+  </section>
+
+  <section class="s" id="crea">
+    <p class="kick rv">Crea la tua card</p>
+    <h2 class="t rv">Provala prima: è già la tua.</h2>
+    <p class="sub rv">Cambia nome, premio e colori e guarda la card aggiornarsi. Quando ti piace, richiedila.</p>
+    <div class="make">
+      <div class="formbox rv">
+        <form id="f" novalidate>
+          <div id="fields">
+            <h3>La tua attività</h3>
+            <div class="field"><label for="f-trade">Mestiere</label><select id="f-trade" name="trade"></select></div>
+            <div class="field"><label for="f-name">Nome dell'attività</label><input id="f-name" name="name" type="text" maxlength="28" autocomplete="organization"></div>
+            <div class="field"><label for="f-rew">Premio finale</label><input id="f-rew" name="reward" type="text" maxlength="40"></div>
+            <div class="field"><span class="l">Tasselli da riempire</span>
+              <div class="stepper"><button type="button" data-step="-1" aria-label="Meno tasselli">−</button><output id="f-slots" aria-live="polite">10</output><button type="button" data-step="1" aria-label="Più tasselli">+</button></div>
+              <span class="hint">Da 3 a 24. Lo cambi quando vuoi.</span></div>
+            <div class="field"><span class="l">Colore</span><div class="swatches" id="f-sw"></div></div>
+            <div class="sep"></div>
+            <h3>Dove ti scriviamo</h3>
+            <div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email" inputmode="email"></div>
+            <div class="field"><label for="f-contact">Il tuo nome <span class="opt">(facoltativo)</span></label><input id="f-contact" name="contact" type="text" autocomplete="name"></div>
+            <div class="field"><label for="f-tel">Telefono o WhatsApp <span class="opt">(facoltativo)</span></label><input id="f-tel" name="tel" type="tel" autocomplete="tel" inputmode="tel"></div>
+            <label class="consent"><input type="checkbox" id="f-ok" name="ok"><span>Acconsento a essere ricontattato per la mia card. Uso i dati solo per risponderti.</span></label>
+            <p class="err" id="f-err" role="alert"></p>
+            <button class="btn primary block" type="submit">Richiedi la tua card</button>
+          </div>
+          <div class="done" id="done"></div>
+        </form>
+      </div>
+      <div class="preview rv">
+        <div id="mycard" class="static"></div>
+        <p class="cap">Così la vedranno i tuoi clienti.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="s">
+    <p class="kick rv">Cosa ottieni</p>
+    <h2 class="t rv">Tutto quello che serve, niente di più.</h2>
+    <div class="feat">
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></div><h3>Il tuo nome e il tuo premio</h3><p>Colori, numero di tasselli e premio li scegli tu e li cambi quando vuoi.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg></div><h3>Un QR per ogni cliente</h3><p>Lo inquadri con il telefono e il tassello si aggiunge da solo, senza cercare nomi.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div><h3>Pannello per il titolare</h3><p>Vedi i clienti, aggiungi o togli tasselli e segni i premi ritirati.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></div><h3>Nessuna app da scaricare</h3><p>Si apre dal browser e si può mettere sulla Home come un'app.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M5 12.5a10 10 0 0114 0M8.5 16a5 5 0 017 0M12 19.5h.01"/></svg></div><h3>Si apre anche con poco segnale</h3><p>La card resta consultabile anche quando la rete è debole.</p></div>
+      <div class="box rv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></div><h3>Un simbolo per il tuo mestiere</h3><p>Pizza per la pizzeria, forbici per il barbiere, zampa per la toelettatura.</p></div>
+    </div>
+  </section>
+
+  <section class="s">
+    <p class="kick rv">Domande</p>
+    <h2 class="t rv">Quello che ci chiedono di solito.</h2>
+    <div class="faq rv">
+      <details><summary>Serve un'app?</summary><p>No. La card si apre dal browser del telefono e, se vuoi, la metti sulla Home con un tocco.</p></details>
+      <details><summary>Il cliente deve registrarsi?</summary><p>Una volta sola, con nome, email e password. Poi entra da qualsiasi telefono e ritrova i suoi tasselli.</p></details>
+      <details><summary>Posso cambiare premio e numero di tasselli?</summary><p>Sì, dal pannello del titolare, quando vuoi.</p></details>
+      <details><summary>Quanto costa?</summary><p>Quando ci scrivi ti spieghiamo prezzo e condizioni. Intanto puoi creare la tua card e vedere come viene.</p></details>
+      <details><summary>Cosa succede dopo la richiesta?</summary><p>Ti rispondiamo all'email che ci lasci per attivare la tua card e metterti il QR da esporre in negozio.</p></details>
+    </div>
+  </section>
+
+  <section class="final rv">
+    <h2>Pronto a far tornare i tuoi clienti?</h2>
+    <p>Crea la tua card in due minuti e guarda com'è fatta prima di decidere.</p>
+    <button class="btn" data-go="crea">Crea la tua card</button>
+  </section>
+  <footer class="f">Tessera · Card fedeltà digitali per attività locali</footer>
+</main>
 
 <script>
 (function(){
-var KEY='tessera-bozza-v3', mem=null, PIN='1234', adminOK=false, authMode='register', authErr='', timer=null;
-var HOVER=!!(window.matchMedia&&window.matchMedia('(hover:hover)').matches);
+document.documentElement.classList.add('js');
+/* Dove arrivano le richieste. Metti qui la tua email (si apre il messaggio già scritto)
+   oppure l'indirizzo di un servizio per moduli (Formspree, Web3Forms…): le richieste partono da sole. */
+var CONFIG={email:'',endpoint:''};
 var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 var THEMES={
@@ -400,48 +420,9 @@ var TRADES=[
  {k:'kebab',label:'Kebab',ico:'wrap',name:'Kebab Istanbul',pitch:'Dal kebab al cliente fisso.',words:'Il decimo kebab lo offriamo noi.',mark:'decimo',lead:'Al banco o da asporto: un tassello a ogni kebab. Quando la card è piena, il prossimo è gratis.',reward:'Kebab in omaggio',slots:8,theme:'ambra'},
  {k:'toelettatura',label:'Toelettatura',ico:'paw',name:'Zampa Felice',pitch:'Dal bagnetto al cliente fisso.',words:'Ogni coccola vale un tassello.',mark:'coccola',lead:'Il tuo amico a quattro zampe merita un premio. Un tassello a ogni visita.',reward:'Un bagnetto in omaggio',slots:8,theme:'prugna'}
 ];
-var CODE_AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-function mkCode(){var c='TS-';for(var i=0;i<8;i++)c+=CODE_AL.charAt(Math.floor(Math.random()*CODE_AL.length));return c;}
-var PEOPLE=[['Giulia Rossi','giulia@esempio.it'],['Marco Bianchi','marco@esempio.it'],['Elena Conti','elena@esempio.it']];
-function tradeOf(k){for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===k) return TRADES[i]; return TRADES[0];}
-function seed(){
-  var d={};
-  TRADES.forEach(function(t){
-    d[t.k]={name:t.name,reward:t.reward,slots:t.slots,theme:t.theme,users:[
-      {name:PEOPLE[0][0],email:PEOPLE[0][1],pw:'demo',code:mkCode(),pts:Math.round(t.slots*.6)},
-      {name:PEOPLE[1][0],email:PEOPLE[1][1],pw:'demo',code:mkCode(),pts:t.slots},
-      {name:PEOPLE[2][0],email:PEOPLE[2][1],pw:'demo',code:mkCode(),pts:Math.max(1,Math.round(t.slots*.3))}]};
-  });
-  return {trade:'barbiere',mode:'cliente',view:'landing',session:null,d:d};
-}
-function load(){
-  var o=null;
-  try{var s=localStorage.getItem(KEY); if(s) o=JSON.parse(s);}catch(e){}
-  if(!o&&mem) o=JSON.parse(mem);
-  var f=seed(); if(!o) return f;
-  if(!o.d) o.d={};
-  for(var k in f.d) if(!o.d[k]) o.d[k]=f.d[k];
-  for(var k2 in o.d){var us=o.d[k2].users||[]; for(var j=0;j<us.length;j++) if(!us[j].code) us[j].code=mkCode();}
-  return o;
-}
-var S=load();
-function hashTrade(){
-  var h=(location.hash||'').replace('#','').toLowerCase();
-  if(!h){var m=/[?&]m=([a-z]+)/.exec(location.search||''); h=m?m[1]:'';}
-  for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===h) return h;
-  return null;
-}
-var LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
-function linkFor(k){return location.href.split('#')[0].split('?')[0]+'#'+k;}
-function save(){var s=JSON.stringify(S); mem=s; try{localStorage.setItem(KEY,s);}catch(e){}}
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function pad(n){return String(n).padStart(2,'0');}
-function T(){return tradeOf(S.trade);}
-function B(){return S.d[S.trade];}
-function me(){var b=B(); for(var i=0;i<b.users.length;i++) if(b.users[i].email===S.session) return {u:b.users[i],i:i}; return null;}
-function toast(m){var t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(function(){t.classList.remove('show');},2000);}
-function ico(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONS[k]+'</svg>';}
-
+function cols(n){return n%5===0?5:(n%4===0?4:(n%3===0&&n<=9?3:5));}
 /* Generatore QR minimale (byte mode, correzione M, versioni 1-4) */
 var QR=(function(){
   var EXP=new Array(512),LOG=new Array(256),i,x=1;
@@ -526,7 +507,6 @@ var QR=(function(){
   return {make:make,svg:svg};
 })();
 var STAR='M24 14.5L26.35 20.76L33.04 21.06L27.8 25.24L29.58 31.69L24 28L18.42 31.69L20.2 25.24L14.96 21.06L21.65 20.76Z';
-var STAMP='<svg class="st" viewBox="0 0 48 48" aria-hidden="true"><circle class="d" cx="24" cy="24" r="22"/><circle class="r" cx="24" cy="24" r="17.5"/><path class="s" d="'+STAR+'"/></svg>';
 var CU=0;
 var GL={
  barbiere:function(){var i='cp'+(CU++);return '<defs><clipPath id="'+i+'"><rect x="19" y="11" width="10" height="26" rx="5"/></clipPath></defs><g clip-path="url(#'+i+')"><rect x="19" y="11" width="10" height="26" fill="#fff"/><path d="M17 15l14-4v5l-14 4zM17 25l14-4v5l-14 4zM17 35l14-4v5l-14 4z" fill="#d63a2f"/><path d="M17 20l14-4v5l-14 4zM17 30l14-4v5l-14 4z" fill="#2f5bd6"/></g><rect x="19" y="11" width="10" height="26" rx="5" fill="none" stroke="#8b93a0" stroke-width="1.5"/>';},
@@ -550,393 +530,150 @@ var GL={
 function stampFor(k){return '<svg class="st" viewBox="0 0 48 48" aria-hidden="true"><circle class="d" cx="24" cy="24" r="22"/><circle class="r" cx="24" cy="24" r="17.5"/>'+(GL[k]?GL[k]():'<path class="s" d="'+STAR+'"/>')+'</svg>';}
 var GIFT='<svg class="g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M5 12v8a1 1 0 001 1h12a1 1 0 001-1v-8M7.5 8a2.5 2.5 0 010-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 010 5"/></svg>';
 function ring(k){return '<svg class="ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/><circle class="dash" cx="24" cy="24" r="17"/><svg x="14" y="14" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[k]+'</svg></svg>';}
-var LOGO='<svg viewBox="0 0 48 48" aria-hidden="true"><circle class="a" cx="24" cy="24" r="23"/><circle class="b" cx="24" cy="24" r="17"/><path class="c" d="'+STAR+'"/></svg>';
-var UNDER='<svg viewBox="0 0 240 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 8C40 2 90 12 140 5S205 7 238 3"/></svg>';
 
-function cols(n){return n%5===0?5:(n%4===0?4:(n%3===0&&n<=9?3:5));}
-function slotsHtml(n,pts){
+function $(s){return document.querySelector(s);}
+function tradeOf(k){for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===k) return TRADES[i]; return TRADES[0];}
+function valid(k){for(var i=0;i<TRADES.length;i++) if(TRADES[i].k===k) return true; return false;}
+function ico(k){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+ICONS[k]+'</svg>';}
+function defaults(k){var t=tradeOf(k);return {name:t.name,reward:t.reward,slots:t.slots,theme:t.theme};}
+function hashTrade(){var h=(location.hash||'').replace('#','').toLowerCase(); return valid(h)?h:null;}
+
+var S={trade:hashTrade()||'barbiere'};
+var D=defaults(S.trade); S.name=D.name; S.reward=D.reward; S.slots=D.slots; S.theme=D.theme;
+
+function slotsHtml(trade,n,pts){
   var h='<div class="slots" style="grid-template-columns:repeat('+cols(n)+',1fr)" role="img" aria-label="'+pts+' tasselli su '+n+'">';
   for(var i=1;i<=n;i++){
-    var on=i<=pts, last=i===n, rot=((i*37)%13)-6;
-    h+='<div class="slot'+(on?' on':'')+(last?' gift':'')+'" style="--rot:'+(last?0:rot)+'deg;--d:'+(i*70+150)+'ms">'+(last?GIFT:'<span class="n">'+i+'</span>'+stampFor(T().k))+'</div>';
+    var on=i<=pts,last=i===n,rot=((i*37)%13)-6;
+    h+='<div class="slot'+(on?' on':'')+(last?' gift':'')+'" style="--rot:'+(last?0:rot)+'deg;--d:'+(i*70+150)+'ms">'+(last?GIFT:'<span class="n">'+i+'</span>'+stampFor(trade))+'</div>';
   }
   return h+'</div>';
 }
-function cardHtml(b,name,pts,no,demo){
-  var th=THEMES[b.theme]||THEMES.cobalto;
-  return '<article class="card tilt" '+(demo?'data-demo ':'')+'style="--c1:'+th.c1+';--c2:'+th.c2+';--gift:'+th.g+'">'+
-    '<div class="sheen"></div>'+
-    '<header><div><div class="biz">'+esc(b.name)+'</div><div class="chipno">Card fedeltà · N° '+pad(no).padStart(4,'0')+'</div></div>'+ring(T().ico)+'</header>'+
-    slotsHtml(b.slots,pts)+
-    '<p class="prize"><b>Premio</b>'+esc(b.reward)+'</p>'+
-    '<footer><div><small>Titolare</small><b>'+esc(name)+'</b></div><div class="r"><small>Tasselli</small><b class="cnt-n">'+pad(pts)+' / '+pad(b.slots)+'</b></div></footer></article>';
-}
-function words(str,markWord,base){
-  return str.split(' ').map(function(w,i){
-    var isMark=markWord&&w.replace(/[.,]/g,'')===markWord;
-    return '<span class="w in'+(isMark?' mark':'')+'" style="--i:'+(i+base)+'">'+esc(w)+(isMark?UNDER:'')+'</span>';
-  }).join(' ');
+function cardHtml(o,pts,holder){
+  var th=THEMES[o.theme]||THEMES.cobalto,t=tradeOf(o.trade);
+  return '<article class="card" style="--c1:'+th.c1+';--c2:'+th.c2+';--gift:'+th.g+'"><header><div><div class="biz">'+esc(o.name||'La tua attività')+'</div><div class="chipno">Card fedeltà · N° 0001</div></div>'+ring(t.ico)+'</header>'+
+    slotsHtml(o.trade,o.slots,pts)+
+    '<p class="prize"><b>Premio</b>'+esc(o.reward||'Il tuo premio')+'</p>'+
+    '<footer><div><small>Titolare</small><b>'+esc(holder)+'</b></div><div class="r"><small>Tasselli</small><b class="cnt">'+pad(pts)+' / '+pad(o.slots)+'</b></div></footer></article>';
 }
 
-function top(){
-  var h='<header class="top wrap"><button class="logo" data-act="home" aria-label="Vai alla home">'+LOGO+'tessera</button>'+
-    '<div class="seg" role="group" aria-label="Vista">'+
-    '<button data-act="mode" data-m="cliente" aria-pressed="'+(S.mode==='cliente')+'">Cosa vede il cliente</button>'+
-    '<button data-act="mode" data-m="admin" aria-pressed="'+(S.mode==='admin')+'">Cosa fa il titolare</button></div></header>';
-  if(LOCK) return h;
-  h+='<div class="wrap"><p class="proposta">Proponi la card a</p><div class="strip" role="group" aria-label="Mestiere">';
-  TRADES.forEach(function(t){
-    h+='<button class="tchip" data-act="trade" data-k="'+t.k+'" aria-pressed="'+(t.k===S.trade)+'">'+ico(t.ico)+esc(t.label)+'</button>';
-  });
-  return h+'</div></div>';
-}
-
-function screenLanding(b,t){
-  return '<div class="s-top in" style="--i:0"><span class="badge">'+ico(t.ico)+'</span><div><div class="s-name">'+esc(b.name)+'</div><div class="s-sub">Card fedeltà</div></div></div>'+
-    '<h1 class="s-h">'+words(t.words,t.mark,1)+'</h1>'+
-    '<p class="s-lead in" style="--i:6">'+esc(t.lead)+'</p>'+
-    '<div class="float in" style="--i:7">'+cardHtml(b,'Il tuo nome',REDUCED?Math.round(b.slots*.6):Math.max(1,Math.round(b.slots*.3)),42,true)+'</div>'+
-    '<div class="actions in" style="--i:9"><button class="btn primary block" data-act="auth" data-m="register">Crea la tua card</button>'+
-    '<button class="btn block" data-act="auth" data-m="login">Ho già un account</button></div>';
-}
-function screenAuth(b){
-  var reg=authMode==='register';
-  return '<div class="sform in"><h2>'+(reg?'Crea la tua card':'Bentornato')+'</h2><p class="small">'+esc(b.name)+'</p>'+
-    '<form data-form="auth" novalidate>'+
-    (reg?'<div class="field"><label for="f-name">Nome e cognome</label><input id="f-name" name="name" type="text" autocomplete="name"></div>':'')+
-    '<div class="field"><label for="f-email">Email</label><input id="f-email" name="email" type="email" autocomplete="email"></div>'+
-    '<div class="field"><label for="f-pw">Password</label><input id="f-pw" name="pw" type="password" autocomplete="'+(reg?'new-password':'current-password')+'"></div>'+
-    '<p class="err" id="auth-err">'+esc(authErr)+'</p>'+
-    '<button class="btn primary block" type="submit">'+(reg?'Registrati':'Entra')+'</button></form>'+
-    '<p class="small" style="margin:16px 0 0">'+(reg?'Hai già un account? <button class="link" data-act="auth" data-m="login">Accedi</button>':'Prima volta? <button class="link" data-act="auth" data-m="register">Registrati</button>')+
-    ' · <button class="link" data-act="home">Indietro</button></p>'+
-    (reg?'':'<p class="small" style="margin:10px 0 0">Account di prova: '+esc(b.users[0].email)+' / demo</p>')+'</div>';
-}
-function screenCard(b){
-  var m=me(); if(!m){S.view='landing';return screenLanding(b,T());}
-  var u=m.u, full=u.pts>=b.slots;
-  return '<div class="pagehead in"><div><h2>Ciao '+esc(u.name.split(' ')[0])+'</h2><p class="small">La tua card fedeltà</p></div><button class="btn sm" data-act="logout">Esci</button></div>'+
-    '<div class="in" style="--i:2">'+cardHtml(b,u.name,u.pts,m.i+1,false)+'</div>'+
-    '<div class="qrbox in" style="--i:3"><button type="button" class="qr" data-qr="open" data-code="'+esc(u.code)+'" aria-label="Ingrandisci il QR">'+QR.svg(u.code)+'</button><div><b>Il tuo QR</b><p>Tocca il QR per ingrandirlo, poi mostralo alla cassa: il titolare lo inquadra e il tassello si aggiunge da solo.</p><code>'+esc(u.code)+'</code></div></div>'+
-    (isStandalone()?'':'<button class="btn block instbtn in" style="--i:4" data-inst="open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg>Aggiungi la card alla Home</button>')+
-    (full?'<p class="done in" style="--i:3"><b>Card completa.</b> Mostra questa schermata al titolare per ritirare il premio.</p>':
-    '<p class="small c in" style="--i:3">Mancano '+(b.slots-u.pts)+' tasselli al premio.</p>');
-}
-
-function share(t){
-  if(LOCK) return '';
-  return '<div class="share in" style="--i:9"><span class="small">Link da inviare a un '+esc(t.label.toLowerCase())+'</span>'+
-    '<div class="sharebox"><code id="lk">'+esc(linkFor(t.k))+'</code><button class="btn sm primary" data-act="copy">Copia link</button></div></div>';
-}
-function pitch(b,t){
-  var inner;
-  if(S.view==='register'||S.view==='login') inner=screenAuth(b);
-  else if(S.view==='card') inner=screenCard(b);
-  else inner=screenLanding(b,t);
-  var pw=t.pitch.split(' '), markIdx=pw.length-1;
-  var h1=pw.map(function(w,i){var m=i===markIdx; return '<span class="w in'+(m?' mark':'')+'" style="--i:'+i+'">'+esc(w)+(m?UNDER:'')+'</span>';}).join(' ');
-  return '<section class="pitch"><div><p class="eyebrow in"><span class="ib">'+ico(t.ico)+'</span>Proposta per '+esc(t.label.toLowerCase())+'</p>'+
-    '<h1 class="big">'+h1+'</h1>'+
-    '<p class="lead in" style="--i:6">Una card fedeltà digitale con il nome di <b>'+esc(b.name)+'</b>. Niente tessera di carta da perdere, niente app da installare.</p>'+
-    '<ul class="ticks in" style="--i:7"><li>Il cliente si registra una volta sola, dal telefono.</li><li>Tu aggiungi i tasselli dal pannello, con un tocco.</li><li>Scegli tu premio, colori e numero di tasselli.</li></ul>'+
-    '<div class="cta in" style="--i:8"><button class="btn primary" data-act="mode" data-m="admin">Vedi il pannello del titolare</button><span class="small">Intanto prova la card nel telefono.</span></div>'+share(t)+'</div>'+
-    '<div class="phonewrap in" style="--i:2"><div class="phone"><div class="notch"></div><div class="screen">'+inner+'</div></div></div></section>';
-}
-
-function admin(b,t){
-  var head='<div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello del titolare · '+esc(t.label)+'</p></div></div>';
-  if(!adminOK){
-    return head+'<div class="panel"><h2>Accesso titolare</h2><p class="small">Qui il titolare gestisce i punti dei suoi clienti.</p>'+
-      '<form data-form="pin" novalidate><div class="field"><label for="f-pin">PIN</label><input id="f-pin" name="pin" type="password" inputmode="numeric" autocomplete="off"></div>'+
-      '<p class="err" id="auth-err">'+esc(authErr)+'</p><button class="btn primary block" type="submit">Entra</button></form>'+
-      '<p class="small" style="margin:14px 0 0">PIN di prova: '+PIN+'</p></div>';
-  }
-  var rows='';
-  b.users.forEach(function(u){
-    var full=u.pts>=b.slots, pct=Math.round(u.pts/b.slots*100);
-    rows+='<div class="row"><div><div class="nm">'+esc(u.name)+'</div><div class="em">'+esc(u.email)+'</div></div>'+
-      '<div class="acts">'+(full?'<span class="pill">Completa</span>':'')+'<span class="cnt">'+u.pts+' / '+b.slots+'</span>'+
-      '<button class="btn sm" data-act="minus" data-e="'+esc(u.email)+'" aria-label="Togli un tassello a '+esc(u.name)+'"'+(u.pts<=0?' disabled':'')+'>−1</button>'+
-      (full?'<button class="btn sm primary" data-act="reset" data-e="'+esc(u.email)+'">Premio ritirato</button>':
-        '<button class="btn sm primary" data-act="plus" data-e="'+esc(u.email)+'" aria-label="Aggiungi un tassello a '+esc(u.name)+'">+1</button>')+'</div>'+
-      '<div class="bar"><i style="width:'+pct+'%"></i></div></div>';
-  });
-  var sw=Object.keys(THEMES).map(function(k,i){var th=THEMES[k];
-    return '<input type="radio" name="theme" id="sw'+i+'" value="'+k+'"'+(k===b.theme?' checked':'')+'><label for="sw'+i+'" style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')" title="'+th.n+'"></label>';}).join('');
-  return head+'<div class="admin"><section class="box"><h2>Clienti ('+b.users.length+')</h2>'+
-    '<button class="btn primary block scanbtn" data-scan="open" style="margin:4px 0 8px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2M4 12h16"/></svg>Scansiona il QR del cliente</button>'+(rows||'<p class="small">Nessun cliente registrato.</p>')+
-    '<p class="small" style="margin-top:12px">Clienti di esempio. Nella versione reale compaiono qui appena si registrano.</p></section>'+
-    '<section class="box"><h2>Personalizza</h2><form data-form="settings" novalidate>'+
-    '<div class="field"><label for="s-name">Nome attività</label><input id="s-name" name="name" type="text" value="'+esc(b.name)+'"></div>'+
-    '<div class="field"><label for="s-rew">Premio</label><input id="s-rew" name="reward" type="text" value="'+esc(b.reward)+'"></div>'+
-    '<div class="field"><label for="s-slots">Tasselli da riempire (3–24)</label><input id="s-slots" name="slots" type="number" min="3" max="24" value="'+b.slots+'"></div>'+
-    '<div class="field"><span class="l">Stile della card</span><div class="swatches">'+sw+'</div></div>'+
-    '<button class="btn primary block" type="submit">Salva modifiche</button></form></section></div>';
-}
-
-/* LETTORE QR */
-var scanEl=null, scanStream=null, scanTimer=null, scanDet=null, scanCv=null, scanLast='', scanLastAt=0, scanResT=null;
-function userByCode(code){
-  for(var k in S.d){var us=S.d[k].users; for(var i=0;i<us.length;i++) if(us[i].code===code) return {k:k,u:us[i],b:S.d[k]};}
-  return null;
-}
-function beep(){try{var C=window.AudioContext||window.webkitAudioContext; if(!C) return; var c=new C(), o=c.createOscillator(), g=c.createGain(); o.frequency.value=880; g.gain.value=.08; o.connect(g); g.connect(c.destination); o.start(); setTimeout(function(){o.stop();c.close();},110);}catch(e){}}
-function scanRes(cls,html){
-  var r=document.getElementById('sres'); if(!r) return;
-  r.className='sres '+cls; r.innerHTML=html;
-  clearTimeout(scanResT); scanResT=setTimeout(function(){var q=document.getElementById('sres'); if(q){q.className='sres';q.innerHTML='Pronto per il prossimo cliente.';}},3600);
-}
-function scanApply(raw){
-  var code=String(raw||'').trim().toUpperCase().replace(/\s+/g,'');
-  if(!code) return;
-  var now=Date.now(); if(code===scanLast&&now-scanLastAt<4000) return;
-  scanLast=code; scanLastAt=now;
-  var f=userByCode(code);
-  if(!f){scanRes('bad','<span class="tick">✕</span><div><b>Codice non riconosciuto</b>Controlla e riprova.</div>'); try{navigator.vibrate&&navigator.vibrate([60,40,60]);}catch(e){} return;}
-  if(f.k!==S.trade){scanRes('bad','<span class="tick">✕</span><div><b>Card di un altro locale</b>'+esc(f.b.name)+'</div>'); return;}
-  var b=f.b,u=f.u;
-  if(u.pts>=b.slots){scanRes('ok','<span class="tick">★</span><div><b>'+esc(u.name)+' ha la card completa</b>Consegna il premio: '+esc(b.reward)+'.</div>'); try{navigator.vibrate&&navigator.vibrate(40);}catch(e){} return;}
-  u.pts++; save(); beep();
-  try{navigator.vibrate&&navigator.vibrate([30,40,30]);}catch(e){}
-  var done=u.pts>=b.slots;
-  scanRes('ok','<span class="tick">✓</span><div><b>'+esc(u.name)+'</b>Tassello aggiunto: '+u.pts+' / '+b.slots+(done?' · card completa, premio da consegnare':'')+'</div>');
-  render(false);
-}
-function jsqrReady(cb){
-  if(window.jsQR) return cb(true);
-  var sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js';
-  sc.onload=function(){cb(!!window.jsQR);}; sc.onerror=function(){cb(false);}; document.head.appendChild(sc);
-}
-function scanLoop(){
-  var v=scanEl&&scanEl.querySelector('video'); if(!v||!scanStream) return;
-  var next=function(){scanTimer=setTimeout(scanLoop,140);};
-  if(v.readyState<2||!v.videoWidth) return next();
-  if(scanDet){scanDet.detect(v).then(function(r){if(r&&r[0]) scanApply(r[0].rawValue); next();},next); return;}
-  if(window.jsQR){
-    var w=Math.min(520,v.videoWidth), h=Math.round(v.videoHeight*w/v.videoWidth);
-    if(!scanCv){scanCv=document.createElement('canvas');}
-    scanCv.width=w; scanCv.height=h;
-    var cx=scanCv.getContext('2d',{willReadFrequently:true}); cx.drawImage(v,0,0,w,h);
-    try{var im=cx.getImageData(0,0,w,h), q=window.jsQR(im.data,w,h,{inversionAttempts:'dontInvert'}); if(q&&q.data) scanApply(q.data);}catch(e){}
-  }
-  next();
-}
-function scanMsg(t){var m=document.getElementById('smsg'); if(m) m.textContent=t;}
-function openScan(){
-  if(scanEl) return;
-  var b=B();
-  var chips=b.users.map(function(u){return '<button class="btn sm" type="button" data-scan="demo" data-code="'+esc(u.code)+'">'+esc(u.name.split(' ')[0])+'</button>';}).join('');
-  scanEl=document.createElement('div'); scanEl.className='scan'; scanEl.setAttribute('role','dialog'); scanEl.setAttribute('aria-label','Scansiona il QR del cliente');
-  scanEl.innerHTML='<div class="sbar"><b>Scansiona la card</b><button class="btn sm" data-scan="close">Chiudi</button></div>'+
-    '<div class="vf off" id="vf"><video playsinline muted autoplay></video><div class="fr2"></div><div class="smsg" id="smsg">Avvio fotocamera…</div></div>'+
-    '<div class="sres" id="sres">Inquadra il QR sulla card del cliente.</div>'+
-    '<form data-scanform novalidate><input id="scode" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="Oppure scrivi il codice (TS-…)"><button class="btn primary" type="submit">Aggiungi</button></form>'+
-    '<div class="demo"><span>Prova senza fotocamera: simula la scansione di</span><div class="chips">'+chips+'</div></div>';
-  document.body.appendChild(scanEl);
-  scanLast=''; scanLastAt=0;
-  var md=navigator.mediaDevices;
-  if(!md||!md.getUserMedia){scanMsg('Fotocamera non disponibile qui: usa il codice o la prova qui sotto.'); return;}
-  md.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}).then(function(st){
-    if(!scanEl){st.getTracks().forEach(function(t){t.stop();}); return;}
-    scanStream=st; var v=scanEl.querySelector('video'); v.srcObject=st;
-    var p=v.play(); if(p&&p.catch) p.catch(function(){});
-    document.getElementById('vf').classList.remove('off'); scanMsg('Inquadra il QR del cliente');
-    if(window.BarcodeDetector){try{scanDet=new BarcodeDetector({formats:['qr_code']});}catch(e){scanDet=null;}}
-    if(scanDet) scanLoop();
-    else jsqrReady(function(ok){ if(!scanEl) return; if(ok) scanLoop(); else {document.getElementById('vf').classList.add('off'); scanMsg('Lettore non caricato (serve internet): usa il codice qui sotto.');} });
-  }).catch(function(){scanMsg('Fotocamera non disponibile o negata: usa il codice o la prova qui sotto.');});
-}
-function closeScan(){
-  clearTimeout(scanTimer); clearTimeout(scanResT); scanTimer=null; scanDet=null;
-  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();}); scanStream=null;}
-  if(scanEl){scanEl.remove(); scanEl=null;}
-}
-document.addEventListener('click',function(e){
-  var t=e.target.closest('[data-scan]'); if(!t) return;
-  var a=t.getAttribute('data-scan');
-  if(a==='open') openScan();
-  else if(a==='close') closeScan();
-  else if(a==='demo'){scanLast=''; scanApply(t.getAttribute('data-code'));}
-});
-document.addEventListener('submit',function(e){
-  var f=e.target.closest('form[data-scanform]'); if(!f) return;
-  e.preventDefault(); var i=f.querySelector('input'); scanLast=''; scanApply(i.value); i.value='';
-});
-document.addEventListener('keydown',function(e){if(e.key==='Escape'&&scanEl) closeScan();});
-
-var qrBig=null;
-function openQr(code){
-  closeQr();
-  qrBig=document.createElement('div'); qrBig.className='qrbig'; qrBig.setAttribute('role','dialog'); qrBig.setAttribute('aria-label','QR ingrandito');
-  qrBig.innerHTML='<div class="sq">'+QR.svg(code)+'</div><code>'+esc(code)+'</code><p>Tocca per chiudere</p>';
-  qrBig.addEventListener('click',closeQr);
-  document.body.appendChild(qrBig);
-}
-function closeQr(){if(qrBig){qrBig.remove();qrBig=null;}}
-document.addEventListener('click',function(e){var t=e.target.closest('[data-qr]'); if(t&&!qrBig) openQr(t.getAttribute('data-code'));});
-document.addEventListener('keydown',function(e){if(e.key==='Escape') closeQr();});
-
-/* PWA: installazione, manifest per attività, service worker */
-var deferredInstall=null, manKey='', manUrl=null;
-function isStandalone(){try{return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}catch(e){return false;}}
-function absUrl(p){try{return new URL(p,location.href).href;}catch(e){return p;}}
-function pwaMeta(){
-  try{
-    var b=B(), th=THEMES[b.theme]||THEMES.cobalto, name=LOCK?b.name:'Tessera Fedeltà';
-    var key=[S.trade,b.name,b.theme,LOCK].join('|'); if(key===manKey) return; manKey=key;
-    document.title=LOCK?(b.name+' · Card fedeltà'):'Tessera Fedeltà';
-    var at=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(at) at.setAttribute('content',name.slice(0,30));
-    var tc=document.querySelector('meta[name="theme-color"]'); if(tc) tc.setAttribute('content',th.b);
-    var link=document.querySelector('link[rel="manifest"]'); if(!link||location.protocol==='file:'||location.protocol==='blob:') return;
-    var base=location.href.split('#')[0].split('?')[0];
-    var man={name:name+(LOCK?' · Card fedeltà':''),short_name:name.slice(0,12),description:'La tua card fedeltà digitale',
-      start_url:base+(LOCK?'#'+S.trade:''),scope:base.replace(/[^\/]*$/,''),display:'standalone',orientation:'portrait',
-      background_color:'#eef0f6',theme_color:th.b,lang:'it',
-      icons:[{src:absUrl('icon-192.png'),sizes:'192x192',type:'image/png',purpose:'any maskable'},{src:absUrl('icon-512.png'),sizes:'512x512',type:'image/png',purpose:'any maskable'}]};
-    var u=URL.createObjectURL(new Blob([JSON.stringify(man)],{type:'application/manifest+json'}));
-    link.setAttribute('href',u); if(manUrl) URL.revokeObjectURL(manUrl); manUrl=u;
-  }catch(e){}
-}
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault(); deferredInstall=e;});
-window.addEventListener('appinstalled',function(){deferredInstall=null; closeSheet(); toast('Card aggiunta alla Home');});
-var sheetEl=null;
-function closeSheet(){if(sheetEl){sheetEl.remove(); sheetEl=null;}}
-function openSheet(html){
-  closeSheet();
-  sheetEl=document.createElement('div'); sheetEl.className='sheetbg'; sheetEl.setAttribute('role','dialog');
-  sheetEl.innerHTML='<div class="sheet">'+html+'<button class="btn block" data-inst="close">Chiudi</button></div>';
-  sheetEl.addEventListener('click',function(e){if(e.target===sheetEl) closeSheet();});
-  document.body.appendChild(sheetEl);
-}
-function installFlow(){
-  if(deferredInstall){
-    var d=deferredInstall; deferredInstall=null;
-    try{d.prompt(); if(d.userChoice) d.userChoice.then(function(r){if(r&&r.outcome==='accepted') toast('Installazione avviata');});}catch(e){}
-    return;
-  }
-  var ua=navigator.userAgent||'', ios=/iPad|iPhone|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1);
-  var SH='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M6 11H5a1 1 0 00-1 1v8a1 1 0 001 1h14a1 1 0 001-1v-8a1 1 0 00-1-1h-1"/></svg>';
-  var DOTS='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/></svg>';
-  if(ios) openSheet('<h3>Aggiungi la card alla Home</h3><p class="sub">Così la apri con un tocco, come un\'app.</p><ol><li><span>Tocca il pulsante Condividi '+SH+' in basso (o in alto nel browser)</span></li><li><span>Scorri e scegli <b>Aggiungi alla schermata Home</b></span></li><li><span>Tocca <b>Aggiungi</b>: l\'icona è pronta</span></li></ol>');
-  else openSheet('<h3>Aggiungi la card alla Home</h3><p class="sub">Così la apri con un tocco, come un\'app.</p><ol><li><span>Apri il menu del browser '+DOTS+'</span></li><li><span>Scegli <b>Installa app</b> oppure <b>Aggiungi a schermata Home</b></span></li><li><span>Conferma: l\'icona è pronta</span></li></ol>');
-}
-document.addEventListener('click',function(e){
-  var t=e.target.closest('[data-inst]'); if(!t) return;
-  if(t.getAttribute('data-inst')==='open') installFlow(); else closeSheet();
-});
-document.addEventListener('keydown',function(e){if(e.key==='Escape') closeSheet();});
-try{ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')) window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});}); }catch(e){}
-
-function stopDemo(){if(timer){clearInterval(timer);timer=null;}}
-function startDemo(){
-  stopDemo(); if(REDUCED) return;
-  var card=document.querySelector('[data-demo]'); if(!card) return;
-  var sl=card.querySelectorAll('.slot'), n=sl.length, c=card.querySelector('.cnt-n'), k=Math.max(1,Math.round(n*.3));
-  timer=setInterval(function(){
-    k++; if(k>n+2) k=1;
+var heroTimer=null;
+function renderHero(){
+  clearInterval(heroTimer);
+  var d=defaults(S.trade), o={trade:S.trade,name:d.name,reward:d.reward,slots:d.slots,theme:d.theme};
+  var el=$('#herocard'); el.innerHTML=cardHtml(o,REDUCED?Math.round(o.slots*.6):Math.max(2,Math.round(o.slots*.3)),'Il tuo cliente');
+  if(REDUCED) return;
+  var sl=el.querySelectorAll('.slot'),n=sl.length,c=el.querySelector('.cnt'),k=Math.max(2,Math.round(n*.3));
+  heroTimer=setInterval(function(){
+    k++; if(k>n+2) k=2;
     var v=Math.min(k,n);
     for(var i=0;i<n;i++) sl[i].classList.toggle('on',i<v);
     c.textContent=pad(v)+' / '+pad(n);
-  },900);
+  },1000);
+}
+function renderMine(){
+  var o={trade:S.trade,name:S.name,reward:S.reward,slots:S.slots,theme:S.theme};
+  $('#mycard').innerHTML=cardHtml(o,Math.max(1,Math.round(S.slots*.4)),'Il tuo cliente');
+}
+function tint(){var th=THEMES[S.theme]||THEMES.cobalto; document.documentElement.style.setProperty('--glow',th.c1);}
+
+/* mestieri */
+function buildStrip(){
+  var h='',o='';
+  TRADES.forEach(function(t){
+    h+='<button type="button" class="tchip" data-k="'+t.k+'" aria-pressed="'+(t.k===S.trade)+'">'+ico(t.ico)+esc(t.label)+'</button>';
+    o+='<option value="'+t.k+'">'+esc(t.label)+'</option>';
+  });
+  $('#strip').innerHTML=h; $('#f-trade').innerHTML=o;
+}
+function buildSwatches(){
+  var h='';Object.keys(THEMES).forEach(function(k,i){var th=THEMES[k];
+    h+='<input type="radio" name="theme" id="sw'+i+'" value="'+k+'"><label for="sw'+i+'" style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')" title="'+th.n+'"></label>';});
+  $('#f-sw').innerHTML=h;
+}
+function syncForm(){
+  $('#f-trade').value=S.trade; $('#f-name').value=S.name; $('#f-rew').value=S.reward; $('#f-slots').textContent=S.slots;
+  var r=document.querySelector('#f-sw input[value="'+S.theme+'"]'); if(r) r.checked=true;
+  document.querySelectorAll('.tchip').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-k')===S.trade));});
+}
+function setTrade(k,center){
+  S.trade=k; var d=defaults(k); S.name=d.name; S.reward=d.reward; S.slots=d.slots; S.theme=d.theme;
+  syncForm(); renderHero(); renderMine(); tint();
+  try{history.replaceState(null,'','#'+k);}catch(e){}
+  demoLink();
+  if(center){var c=document.querySelector('.tchip[aria-pressed="true"]'),st=$('#strip'); if(c) st.scrollTo({left:c.offsetLeft-st.clientWidth/2+c.offsetWidth/2,behavior:REDUCED?'auto':'smooth'});}
 }
 
-function render(fresh,center){
-  stopDemo();
-  var b=B(), t=T(), th=THEMES[b.theme]||THEMES.cobalto;
-  var root=document.documentElement;
-  root.style.setProperty('--brand',th.b); root.style.setProperty('--coral',th.g);
-  pwaMeta();
-  var oldStrip=document.querySelector('.strip'), sl=oldStrip?oldStrip.scrollLeft:0, sy=window.scrollY;
-  var app=document.getElementById('app');
-  app.className=fresh?'':'still';
-  app.innerHTML=top()+'<main class="wrap">'+(S.mode==='admin'?admin(b,t):pitch(b,t))+'</main>';
-  var strip=document.querySelector('.strip');
-  if(strip){strip.scrollLeft=sl;
-  if(center){var c=strip.querySelector('[aria-pressed="true"]'); if(c) strip.scrollTo({left:c.offsetLeft-strip.clientWidth/2+c.offsetWidth/2,behavior:'smooth'});}}
-  if(!fresh) window.scrollTo(0,sy);
-  if(S.mode!=='admin'&&S.view==='landing') startDemo();
-}
-
+/* eventi */
 document.addEventListener('click',function(e){
-  var t=e.target.closest('[data-act]'); if(!t) return;
-  var a=t.getAttribute('data-act'), b=B(), fresh=true, center=false;
-  if(a==='copy'){
-    var url=linkFor(S.trade), done=function(){toast('Link copiato');}, fallback=function(){
-      var n=document.getElementById('lk'); if(n){var r=document.createRange(); r.selectNodeContents(n); var g=window.getSelection(); g.removeAllRanges(); g.addRange(r);} toast('Tieni premuto sul link per copiarlo');};
-    try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,fallback); else fallback(); }catch(err){fallback();}
-    return;
-  }
-  if(a==='trade'){S.trade=t.getAttribute('data-k');S.session=null;S.view='landing';adminOK=false;authErr='';center=true;}
-  else if(a==='mode'){S.mode=t.getAttribute('data-m');authErr='';}
-  else if(a==='auth'){S.mode='cliente';authMode=t.getAttribute('data-m');S.view=authMode;authErr='';}
-  else if(a==='home'){S.mode='cliente';S.view='landing';}
-  else if(a==='logout'){S.session=null;S.view='landing';}
-  else {
-    fresh=false;
-    var em=t.getAttribute('data-e'), u=null;
-    b.users.forEach(function(x){if(x.email===em)u=x;});
-    if(!u) return;
-    try{if(navigator.vibrate&&(a==='plus'||a==='minus')) navigator.vibrate(12);}catch(err){}
-    if(a==='plus') u.pts=Math.min(b.slots,u.pts+1);
-    if(a==='minus') u.pts=Math.max(0,u.pts-1);
-    if(a==='reset'){u.pts=0;toast('Card azzerata per '+u.name);}
-  }
-  save(); render(fresh,center);
+  var t=e.target.closest('.tchip'); if(t){setTrade(t.getAttribute('data-k'),true); return;}
+  var g=e.target.closest('[data-go]'); if(g){var el=document.getElementById(g.getAttribute('data-go')); if(el) el.scrollIntoView({behavior:REDUCED?'auto':'smooth',block:'start'}); return;}
+  var tp=e.target.closest('[data-top]'); if(tp){e.preventDefault(); window.scrollTo({top:0,behavior:REDUCED?'auto':'smooth'}); return;}
+  var st=e.target.closest('[data-step]'); if(st){var n=Math.max(3,Math.min(24,S.slots+parseInt(st.getAttribute('data-step'),10))); S.slots=n; $('#f-slots').textContent=n; renderMine(); return;}
+  var bk=e.target.closest('[data-back]'); if(bk){$('#done').className='done'; $('#fields').style.display=''; return;}
 });
+$('#f-trade').addEventListener('change',function(e){setTrade(e.target.value,true);});
+$('#f-name').addEventListener('input',function(e){S.name=e.target.value; renderMine();});
+$('#f-rew').addEventListener('input',function(e){S.reward=e.target.value; renderMine();});
+$('#f-sw').addEventListener('change',function(e){if(e.target.name==='theme'){S.theme=e.target.value; renderMine(); tint();}});
+window.addEventListener('hashchange',function(){var k=hashTrade(); if(k&&k!==S.trade) setTrade(k,true);});
 
-document.addEventListener('submit',function(e){
-  var f=e.target.closest('form[data-form]'); if(!f) return;
+/* richiesta */
+function summary(v){
+  var th=THEMES[S.theme]||THEMES.cobalto;
+  return 'Nuova richiesta di card fedeltà\n\nMestiere: '+tradeOf(S.trade).label+'\nAttività: '+S.name+'\nPremio: '+S.reward+'\nTasselli: '+S.slots+'\nColore: '+th.n+
+    '\n\nEmail: '+v.email+(v.contact?'\nNome: '+v.contact:'')+(v.tel?'\nTelefono: '+v.tel:'');
+}
+function showDone(kind,v){
+  var msg={
+    sent:'Ti scriviamo a <b>'+esc(v.email)+'</b> per attivare la tua card.',
+    mail:'Si è aperta la tua app di posta con la richiesta già scritta: premi <b>Invia</b> per completarla.',
+    demo:'Questa è un\'anteprima: in questa versione la richiesta non viene ancora inviata.'
+  }[kind];
+  var d=$('#done');
+  d.innerHTML='<div class="ok"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div><h3>'+(kind==='demo'?'Richiesta pronta':'Richiesta ricevuta')+'</h3><p>'+msg+'</p><pre>'+esc(summary(v))+'</pre><button type="button" class="btn block" data-back>Modifica la card</button>';
+  d.className='done on'; $('#fields').style.display='none';
+  d.scrollIntoView({behavior:REDUCED?'auto':'smooth',block:'center'});
+}
+$('#f').addEventListener('submit',function(e){
   e.preventDefault();
-  var kind=f.getAttribute('data-form'), b=B(), d=new FormData(f);
-  if(kind==='pin'){
-    if(String(d.get('pin')).trim()===PIN){adminOK=true;authErr='';render(true);} else {authErr='PIN non corretto.';render(false);}
-    return;
-  }
-  if(kind==='auth'){
-    var email=String(d.get('email')||'').trim().toLowerCase(), pw=String(d.get('pw')||''), name=String(d.get('name')||'').trim();
-    var found=null; b.users.forEach(function(x){if(x.email===email)found=x;});
-    if(!/^\S+@\S+\.\S+$/.test(email)){authErr='Inserisci un indirizzo email valido.';render(false);return;}
-    if(authMode==='register'){
-      if(name.length<2){authErr='Inserisci nome e cognome.';render(false);return;}
-      if(pw.length<4){authErr='La password deve avere almeno 4 caratteri.';render(false);return;}
-      if(found){authErr='Questa email è già registrata. Prova ad accedere.';render(false);return;}
-      b.users.push({name:name,email:email,pw:pw,pts:0,code:mkCode()});
-      S.session=email;S.view='card';authErr='';save();render(true);toast('Registrazione completata');return;
-    }
-    if(!found||found.pw!==pw){authErr='Email o password non corretti.';render(false);return;}
-    S.session=email;S.view='card';authErr='';save();render(true);return;
-  }
-  if(kind==='settings'){
-    var n=parseInt(d.get('slots'),10); if(isNaN(n)) n=b.slots; n=Math.max(3,Math.min(24,n));
-    b.name=String(d.get('name')||'').trim()||b.name;
-    b.reward=String(d.get('reward')||'').trim()||b.reward;
-    var th=String(d.get('theme')||''); if(THEMES[th]) b.theme=th;
-    b.slots=n; b.users.forEach(function(u){u.pts=Math.min(u.pts,n);});
-    save();render(false);toast('Modifiche salvate');
-  }
+  var v={email:$('#f-email').value.trim(),contact:$('#f-contact').value.trim(),tel:$('#f-tel').value.trim()}, err=$('#f-err');
+  if(!(S.name||'').trim()){err.textContent='Scrivi il nome della tua attività.'; $('#f-name').focus(); return;}
+  if(!/^\S+@\S+\.\S+$/.test(v.email)){err.textContent='Inserisci un indirizzo email valido.'; $('#f-email').focus(); return;}
+  if(!$('#f-ok').checked){err.textContent='Per continuare serve il consenso a essere ricontattato.'; return;}
+  err.textContent='';
+  var text=summary(v);
+  if(CONFIG.endpoint){
+    fetch(CONFIG.endpoint,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({subject:'Richiesta card fedeltà',email:v.email,name:v.contact,phone:v.tel,message:text,trade:S.trade,business:S.name,reward:S.reward,slots:S.slots,theme:S.theme})})
+      .then(function(r){if(!r.ok) throw 0; showDone('sent',v);})
+      .catch(function(){err.textContent='Non siamo riusciti a inviare la richiesta. Riprova tra poco.';});
+  } else if(CONFIG.email){
+    showDone('mail',v);
+    location.href='mailto:'+CONFIG.email+'?subject='+encodeURIComponent('Richiesta card fedeltà · '+S.name)+'&body='+encodeURIComponent(text);
+  } else showDone('demo',v);
 });
 
-document.addEventListener('pointermove',function(e){
-  if(REDUCED||!HOVER) return;
-  var t=e.target.closest&&e.target.closest('.tilt'); if(!t) return;
-  var r=t.getBoundingClientRect(), x=(e.clientX-r.left)/r.width, y=(e.clientY-r.top)/r.height;
-  t.style.setProperty('--ry',((x-.5)*16).toFixed(2)+'deg');
-  t.style.setProperty('--rx',((.5-y)*16).toFixed(2)+'deg');
-  t.style.setProperty('--mx',(x*100).toFixed(1)+'%');
-  t.style.setProperty('--my',(y*100).toFixed(1)+'%');
-  t.classList.add('hot');
-});
-document.addEventListener('pointerout',function(e){
-  var t=e.target.closest&&e.target.closest('.tilt');
-  if(t&&!t.contains(e.relatedTarget)){t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');t.classList.remove('hot');}
-});
-window.addEventListener('hashchange',function(){
-  closeScan(); closeQr(); closeSheet();
-  LOCK=hashTrade(); if(LOCK) S.trade=LOCK;
-  S.session=null;S.view='landing';S.mode='cliente';adminOK=false;render(true);
-});
-render(true);
+/* mini visual */
+function buildVisuals(){
+  $('#heroqr').innerHTML=QR.svg('TS-8K2MQX7P');
+  $('#vqr').innerHTML=QR.svg('TS-K7M2QX9P');
+  var h='';['cobalto','rosa','smeraldo','ambra','prugna'].forEach(function(k){var th=THEMES[k]; h+='<b style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')"></b>';});
+  $('#vsw').innerHTML=h;
+}
+
+/* comparsa */
+function reveal(){
+  var els=document.querySelectorAll('.rv');
+  if(!('IntersectionObserver' in window)||REDUCED){els.forEach(function(x){x.classList.add('in');});return;}
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+  els.forEach(function(x,i){x.style.transitionDelay=(Math.min(i%4,3)*70)+'ms';io.observe(x);});
+}
+
+function demoLink(){var a=$('#demolink'); if(a) a.setAttribute('href','demo.html#'+S.trade);}
+buildStrip(); demoLink(); buildSwatches(); buildVisuals(); syncForm(); renderHero(); renderMine(); tint(); reveal();
+setTimeout(function(){var c=document.querySelector('.tchip[aria-pressed="true"]'),st=$('#strip'); if(c&&st) st.scrollLeft=Math.max(0,c.offsetLeft-st.clientWidth/2+c.offsetWidth/2);},60);
 })();
 </script>
+
 </body>
 </html>
