@@ -332,7 +332,9 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 @media (prefers-reduced-motion:reduce){.reel{overflow-x:auto;-webkit-mask-image:none;mask-image:none}.reel-track{animation:none}.rc[aria-hidden=true]{display:none}}
 
 @media (max-width:820px){.steps3{grid-template-columns:1fr}.addf{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){.coin,.cs,.flipper,.v.enter,.cl,.ov{animation:none!important}}
+.btn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}.btn.danger.solid{background:var(--bad);border-color:var(--bad);color:#fff}.btn:disabled{opacity:.45;cursor:not-allowed}
+.dlg{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:20px;background:rgba(8,10,25,.78);backdrop-filter:blur(6px);animation:fade .25s}.dlg .box{width:min(92vw,380px);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:22px;padding:22px;display:grid;gap:12px}.dlg h3{margin:0}.dlg p{margin:0}.dlg .field{margin:0}
+@media (prefers-reduced-motion:reduce){.coin,.cs,.flipper,.v.enter,.cl,.ov,.dlg{animation:none!important}}
 
 /* pannello cliente */
 .cardv{max-width:400px;margin:22px auto 40px;display:grid;gap:16px}
@@ -764,7 +766,12 @@ function panel(){
 function modal(){
   var c=cl(S.open); if(!c) return '';
   return '<div class="ov" data-a="close"><div class="flipper" data-a="flip"><div class="face">'+cardHtml({trade:A.trade,name:A.biz.name,reward:A.biz.reward,slots:A.biz.slots,theme:A.biz.theme},c.pts,c.name)+'</div><div class="face back"><div class="qrb">'+QR.svg(c.code)+'</div><b>'+esc(c.name)+'</b><code>'+esc(c.code)+'</code><span class="small">Tocca per girare la card</span></div></div>'+
-  '<div class="macts">'+(c.pts>=A.biz.slots?'<button class="btn primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn primary" data-a="plus" data-id="'+c.id+'">+1 tassello</button>')+'<button class="btn" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn" data-a="close">Chiudi</button></div><div class="macts" style="margin-top:10px"><button class="btn sm" data-a="share" data-id="'+c.id+'">Invia link al cliente</button><button class="btn sm" data-a="copy" data-id="'+c.id+'">Copia link</button></div></div>';
+  '<div class="macts">'+(c.pts>=A.biz.slots?'<button class="btn primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn primary" data-a="plus" data-id="'+c.id+'">+1 tassello</button>')+'<button class="btn" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn" data-a="close">Chiudi</button></div><div class="macts" style="margin-top:10px"><button class="btn sm" data-a="share" data-id="'+c.id+'">Invia link al cliente</button><button class="btn sm" data-a="copy" data-id="'+c.id+'">Copia link</button></div><div class="macts" style="margin-top:10px"><button class="btn sm danger" data-a="del" data-id="'+c.id+'">Elimina cliente</button></div></div>';
+}
+function delDlg(){
+  var c=S.del&&cl(S.del.id); if(!c) return '';
+  if(S.del.step===1) return '<div class="dlg" role="alertdialog" aria-modal="true" aria-label="Elimina cliente"><div class="box"><h3>Eliminare questo cliente?</h3><p class="small">Stai per eliminare <b>'+esc(c.name)+'</b>, con la sua card e lo storico dei tasselli ('+c.pts+'/'+A.biz.slots+').</p><div class="macts"><button class="btn" data-a="delno">Annulla</button><button class="btn danger" data-a="del2">Continua</button></div></div></div>';
+  return '<div class="dlg" role="alertdialog" aria-modal="true" aria-label="Conferma eliminazione"><div class="box"><h3>Ultima conferma</h3><p class="small">L’eliminazione di <b>'+esc(c.name)+'</b> è definitiva e non si può annullare: il suo link e il suo QR smetteranno di funzionare.</p><div class="field"><label for="dci">Scrivi <b>ELIMINA</b> per confermare</label><input id="dci" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"></div><div class="macts"><button class="btn" data-a="delno">Annulla</button><button class="btn danger solid" id="dcb" data-a="delgo" disabled>Elimina</button></div></div></div>';
 }
 function ost(o){
   if(o.status==='active') return ['ok','Attivo'];
@@ -790,12 +797,13 @@ function seller(){
 function render(fresh){
   var v=S.view; if(v==='panel'&&!A) v=S.view='home';
   var h=v==='home'?home():v==='auth'?auth():v==='seller'?seller():v==='card'?cardView():panel();
-  $('#app').innerHTML='<div class="v on'+(fresh?' enter':'')+'">'+h+'</div>'+(v==='panel'&&S.open?modal():'');
+  $('#app').innerHTML='<div class="v on'+(fresh?' enter':'')+'">'+h+'</div>'+(v==='panel'&&S.open?modal():'')+(v==='panel'&&S.del?delDlg():'');
   var hb=$('#hb'); hb.setAttribute('data-a',A?'panel':'login'); hb.textContent=A?'Il mio pannello':'Accedi'; hb.style.display=v==='card'?'none':'';
   var inC=v==='card'&&C, inP=(v==='panel'&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
   r.setProperty('--glow',th.c1); if(inP) r.setProperty('--brand',th.b); else r.removeProperty('--brand');
   if(v==='home'){stage(false);initLand();}
   applyFilter();
+  if(S.del&&S.del.step===2){var di=$('#dci'); if(di) di.focus();}
 }
 function applyFilter(){
   var i=$('#qs'); if(!i) return;
@@ -803,8 +811,12 @@ function applyFilter(){
   rows.forEach(function(r){var ok=!q||r.getAttribute('data-s').indexOf(q)>-1||(dg.length>=3&&(r.getAttribute('data-p')||'').indexOf(dg)>-1); r.style.display=ok?'':'none'; if(ok) shown++;});
   var n=$('#qn'); if(n) n.hidden=!(q&&!shown);
 }
-document.addEventListener('input',function(e){if(e.target&&e.target.id==='qs'){S.q=e.target.value;applyFilter();}});
-function go(v){S.view=v;S.err='';S.open=null;render(true);window.scrollTo(0,0);}
+document.addEventListener('input',function(e){
+  if(e.target&&e.target.id==='qs'){S.q=e.target.value;applyFilter();}
+  if(e.target&&e.target.id==='dci'){var b=$('#dcb'); if(b) b.disabled=e.target.value.trim().toUpperCase()!=='ELIMINA';}
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&S.del){S.del=null;render(false);}});
+function go(v){S.view=v;S.err='';S.open=null;S.del=null;render(true);window.scrollTo(0,0);}
 document.addEventListener('change',function(e){
   var el=e.target; if(!el||el.id!=='a0'||!valid(el.value)) return;
   var prev=S.trade; S.trade=el.value;
@@ -931,6 +943,20 @@ document.addEventListener('click',async function(e){
   if(a==='scclose'){closeScan();return;}
   if(a==='scundo'){undoScan();return;}
   if(a==='screset'){resetScan();return;}
+  if(a==='del'){if(!cl(id)) return; S.del={id:id,step:1}; render(false); return;}
+  if(a==='delno'){S.del=null; render(false); return;}
+  if(a==='del2'){if(S.del){S.del.step=2; render(false);} return;}
+  if(a==='delgo'){
+    var dc=S.del&&cl(S.del.id); if(!dc){S.del=null; render(false); return;}
+    var di=$('#dci'); if(!di||di.value.trim().toUpperCase()!=='ELIMINA') return;
+    t.disabled=true;
+    var dr=await SB.from('tessera_clients').delete().eq('id',dc.id).eq('owner_id',A.id).select('id');
+    if(dr.error){t.disabled=false; toast('Errore: '+dr.error.message); return;}
+    if(!dr.data||!dr.data.length){t.disabled=false; toast('Non è stato possibile eliminare il cliente'); return;}
+    A.clients=A.clients.filter(function(x){return x.id!==dc.id;});
+    S.del=null; S.open=null; render(false); toast('Cliente eliminato: '+dc.name);
+    return;
+  }
   if(a==='share'||a==='copy'){
     var cc=cl(id); if(!cc) return; var lk=cardLink(cc);
     if(a==='share'){window.open(waLink(cc.phone,'Ciao '+cc.name+'! Ecco la tua card fedeltà di '+A.biz.name+': '+lk+'\nMostra il QR alla cassa per ricevere i tasselli.'),'_blank','noopener');return;}
