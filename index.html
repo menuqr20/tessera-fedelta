@@ -10,7 +10,10 @@
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>:root{color-scheme:light}body{margin:0}</style>
+<style>:root{color-scheme:light}body{margin:0}.pill{padding:4px 11px;border-radius:99px;font-size:12px;font-weight:700;background:var(--soft);white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--ok) 18%,var(--surface));color:var(--ok)}.pill.bad{background:color-mix(in srgb,var(--bad) 14%,var(--surface));color:var(--bad)}
+.wide{grid-column:1/-1;flex-wrap:wrap}
+</style>
 <title>Tessera · Card fedeltà per la tua attività</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -309,6 +312,7 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 </div></header>
 <main class="wrap" id="app"></main>
 <div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 (function(){
 var REDUCED=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -497,22 +501,28 @@ function cardHtml(o,pts,holder){
     '<p class="prize"><b>Premio</b>'+esc(o.reward||'Il tuo premio')+'</p>'+
     '<footer><div><small>Titolare</small><b>'+esc(holder)+'</b></div><div class="r"><small>Tasselli</small><b class="cnt">'+pad(pts)+' / '+pad(o.slots)+'</b></div></footer></article>';
 }
-/* ---- app v4 ---- */
-var CONFIG={wa:'',email:'',endpoint:'',secret:'cambia-questa-parola',pin:'0000',trial:3};
-var KEY='tessera-v4',D={a:{},cur:null},A=null,S={trade:hashTrade()||'barbiere',view:'home',mode:'reg',err:'',pin:false,res:'',open:null};
-try{var _d=JSON.parse(localStorage.getItem(KEY));if(_d&&_d.a)D=_d;}catch(e){}
-A=D.a[D.cur]||null;
-function save(){D.cur=A?A.email:null;if(A)D.a[A.email]=A;try{localStorage.setItem(KEY,JSON.stringify(D));}catch(e){}}
-function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('show');},2400);}
-function mk(){var AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789',c='TS-';for(var i=0;i<8;i++)c+=AL.charAt(Math.floor(Math.random()*31));return c;}
+/* ---- app v5: Supabase ---- */
+var CONFIG={wa:''};
+var SB=window.supabase.createClient('https://vxxmgymywnjpkbnhfbpx.supabase.co','sb_publishable_h9dXCZ4OlfiGcwlqFChUQg_qE-mdHrW');
+var A=null,ADM=null,S={trade:hashTrade()||'barbiere',view:'home',mode:'reg',err:'',open:null,f:'all',res:{}};
+function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('show');},2600);}
 function demoOf(k){var d=defaults(k);return {trade:k,name:d.name,reward:d.reward,slots:d.slots,theme:d.theme};}
-function left(){return Math.ceil((A.start+CONFIG.trial*864e5-Date.now())/864e5);}
-function status(){return A.active?'ok':(left()>0?'trial':'lock');}
-function waLink(n,t){return 'https://wa.me/'+String(n||'').replace(/\D/g,'')+'?text='+encodeURIComponent(t);}
-function hsh(s){var a=2166136261,b=5381;for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);a=Math.imul(a^c,16777619);b=Math.imul(b,33)^c;}return [a>>>0,b>>>0];}
-function codeFor(e){var h=hsh(String(e).trim().toLowerCase()+'|'+CONFIG.secret),AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789',o='';for(var k=0;k<2;k++){var n=h[k];for(var i=0;i<4;i++){o+=AL.charAt(n%31);n=Math.floor(n/31);}if(k===0)o+='-';}return o;}
+function left(){return Math.ceil((new Date(A.trial)-Date.now())/864e5);}
+function status(){return A.status==='active'?'ok':(A.status==='trial'&&left()>0?'trial':'lock');}
+function waLink(n,t){var d=String(n||'').replace(/\D/g,'');if(d.length===10&&d.charAt(0)==='3')d='39'+d;return 'https://wa.me/'+d+'?text='+encodeURIComponent(t);}
 function cl(id){for(var i=0;i<A.clients.length;i++)if(A.clients[i].id===id)return A.clients[i];return null;}
-
+async function loadMe(){
+  var s=(await SB.auth.getSession()).data.session; if(!s){A=null;return;}
+  var r=await SB.from('tessera_owners').select('*').eq('id',s.user.id).maybeSingle(); if(!r.data){A=null;return;}
+  var o=r.data,c=await SB.from('tessera_clients').select('*').eq('owner_id',o.id).order('created_at',{ascending:false});
+  A={id:o.id,email:o.email,trade:o.trade,status:o.status,trial:o.trial_ends_at,biz:{name:o.biz_name,reward:o.reward,slots:o.slots,theme:o.theme},clients:c.data||[]};
+}
+async function loadAdm(){
+  var a=await SB.rpc('tessera_is_admin'); if(a.data!==true){ADM=null;return;}
+  var o=await SB.from('tessera_owners').select('*').order('created_at',{ascending:false}),c=await SB.from('tessera_clients').select('owner_id'),n={};
+  (c.data||[]).forEach(function(x){n[x.owner_id]=(n[x.owner_id]||0)+1;});
+  ADM={owners:(o.data||[]).map(function(x){x.n=n[x.id]||0;return x;})};
+}
 function home(){
   var strip=TRADES.map(function(t){return '<button class="tchip" data-a="trade" data-k="'+t.k+'" aria-pressed="'+(t.k===S.trade)+'">'+ico(t.ico)+esc(t.label)+'</button>';}).join('');
   return '<section class="hero2"><div><p class="eyebrow"><i>'+ico('sparkle')+'</i>Card fedeltà digitale per attività locali</p>'+
@@ -548,7 +558,7 @@ function panel(){
   var b=A.biz,t=tradeOf(A.trade),st=status();
   var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="logout">Esci</button></div>';
   if(st==='lock'){
-    return h+'<div class="pbox lock"><h3>La prova è finita</h3><p class="small" style="margin-bottom:14px">Dopo il pagamento ricevi un codice su WhatsApp o per email. Inseriscilo qui per riattivare il pannello: i tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+
+    return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':'La prova è finita')+'</h3><p class="small" style="margin-bottom:14px">Dopo il pagamento ricevi un codice su WhatsApp o per email. Inseriscilo qui per riattivare il pannello: i tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+
     '<a class="btn block" style="margin-top:10px" target="_blank" rel="noopener" href="'+waLink(CONFIG.wa,'Ciao, sono '+b.name+' ('+A.email+'). Vorrei attivare Tessera.')+'">Scrivici su WhatsApp</a></div></div>';
   }
   h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><b>Profilo attivo</b></div>';
@@ -565,10 +575,26 @@ function modal(){
   return '<div class="ov" data-a="close"><div class="flipper" data-a="flip"><div class="face">'+cardHtml({trade:A.trade,name:A.biz.name,reward:A.biz.reward,slots:A.biz.slots,theme:A.biz.theme},c.pts,c.name)+'</div><div class="face back"><div class="qrb">'+QR.svg(c.code)+'</div><b>'+esc(c.name)+'</b><code>'+esc(c.code)+'</code><span class="small">Tocca per girare la card</span></div></div>'+
   '<div class="macts"><button class="btn primary" data-a="plus" data-id="'+c.id+'">+1 tassello</button><button class="btn" data-a="close">Chiudi</button></div></div>';
 }
+function ost(o){
+  if(o.status==='active') return ['ok','Attivo'];
+  if(o.status==='suspended') return ['bad','Sospeso'];
+  var d=Math.ceil((new Date(o.trial_ends_at)-Date.now())/864e5); return d>0?['trial','Prova · '+d+' gg']:['bad','Scaduto'];
+}
+function sadmin(){
+  var os=ADM.owners,cnt={all:os.length,trial:0,ok:0,bad:0};
+  os.forEach(function(o){cnt[ost(o)[0]]++;});
+  var chips=[['all','Tutti'],['trial','In prova'],['ok','Attivi'],['bad','Scaduti/sospesi']].map(function(x){return '<button class="tchip" data-a="af" data-k="'+x[0]+'" aria-pressed="'+(S.f===x[0])+'">'+x[1]+' · '+cnt[x[0]]+'</button>';}).join('');
+  var rows=os.filter(function(o){return S.f==='all'||ost(o)[0]===S.f;}).map(function(o,i){
+    var s=ost(o),code=S.res[o.id],msg=code?'Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code:'';
+    return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+'">'+s[1]+'</span>'+
+    '<div class="acts wide"><button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
+    (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b></span><span class="acts"><a class="btn sm primary" target="_blank" rel="noopener" href="'+waLink(o.phone,msg)+'">WhatsApp</a><a class="btn sm" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
+  return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
+}
 function seller(){
-  var h='<section class="narrow"><h2>Area venditore</h2>';
-  if(!S.pin) return h+'<form data-f="pin" novalidate style="margin-top:12px"><div class="field"><label for="p1">PIN</label><input id="p1" name="pin" type="password" inputmode="numeric"></div><p class="err"></p><button class="btn primary block" type="submit">Entra</button></form></section>';
-  return h+'<p class="small">Pagamento ricevuto? Inserisci l’email del cliente e invia il codice.</p><form data-f="sel" novalidate style="margin-top:14px"><div class="field"><label for="e1">Email del cliente</label><input id="e1" name="email" type="email"></div><div class="field"><label for="e2">WhatsApp del cliente</label><input id="e2" name="tel" type="tel"></div><button class="btn primary block" type="submit">Genera codice</button></form>'+S.res+'</section>';
+  if(ADM) return sadmin();
+  var r=S.mode==='areg';
+  return '<section class="narrow"><h2>Area riservata</h2><p class="small">Solo per il gestore di Tessera.</p><form data-f="alogin" novalidate style="margin-top:14px"><div class="field"><label for="e1">Email</label><input id="e1" name="email" type="email" autocomplete="email"></div><div class="field"><label for="e2">Password</label><input id="e2" name="pw" type="password" autocomplete="'+(r?'new-password':'current-password')+'"></div><p class="err"></p><button class="btn primary block" type="submit">'+(r?'Crea account':'Entra')+'</button></form><p class="small sw">'+(r?'Hai già l’account? <button class="link" data-a="areg0">Accedi</button>':'Primo accesso? <button class="link" data-a="areg1">Crea account</button>')+'</p></section>';
 }
 function render(fresh){
   var v=S.view; if(v==='panel'&&!A) v=S.view='home';
@@ -582,66 +608,79 @@ function render(fresh){
 function go(v){S.view=v;S.err='';S.open=null;render(true);window.scrollTo(0,0);}
 function fail(f,m){var e=f.querySelector('.err'); if(e) e.textContent=m;}
 
-document.addEventListener('click',function(e){
+document.addEventListener('click',async function(e){
   var t=e.target.closest('[data-a]'); if(!t) return;
   var a=t.getAttribute('data-a'), id=t.getAttribute('data-id');
   if(a==='trade'){S.trade=t.getAttribute('data-k');var bs=document.querySelectorAll('.tchip');for(var i=0;i<bs.length;i++)bs[i].setAttribute('aria-pressed',bs[i]===t?'true':'false');stage(true);return;}
   if(a==='flip'){t.classList.toggle('on');return;}
   if(a==='home'){go('home');return;}
   if(a==='reg'||a==='login'){S.mode=a;go('auth');return;}
+  if(a==='areg0'||a==='areg1'){S.mode=a==='areg1'?'areg':'reg';render(false);return;}
   if(a==='panel'){go('panel');return;}
-  if(a==='logout'){A=null;save();go('home');return;}
+  if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
+  if(a==='logout'){await SB.auth.signOut();A=null;ADM=null;S.res={};if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='acode'){var r=await SB.rpc('tessera_make_code',{p_owner:id});if(r.error)return toast('Errore: '+r.error.message);S.res[id]=r.data;render(false);return;}
+  if(a==='aset'){var r2=await SB.rpc('tessera_admin_set',{p_owner:id,p_status:t.getAttribute('data-st'),p_days:parseInt(t.getAttribute('data-d')||'0',10)});if(r2.error)return toast('Errore: '+r2.error.message);await loadAdm();render(false);return;}
+  if(!A) return;
   if(a==='open'){S.open=id;render(false);return;}
   if(a==='close'){S.open=null;render(false);return;}
-  var c=cl(id); if(!c) return;
+  var c=cl(id); if(!c) return; var old=c.pts;
   if(a==='plus') c.pts=Math.min(A.biz.slots,c.pts+1);
   if(a==='minus') c.pts=Math.max(0,c.pts-1);
   if(a==='reset'){c.pts=0;toast('Card azzerata per '+c.name);}
   try{if(navigator.vibrate) navigator.vibrate(12);}catch(x){}
-  save(); render(false);
+  render(false);
+  var u=await SB.from('tessera_clients').update({pts:c.pts}).eq('id',id);
+  if(u.error){c.pts=old;render(false);toast('Errore: '+u.error.message);}
 });
-document.addEventListener('submit',function(e){
+document.addEventListener('submit',async function(e){
   var f=e.target.closest('form[data-f]'); if(!f) return; e.preventDefault();
-  var k=f.getAttribute('data-f'), d=new FormData(f), g=function(n){return String(d.get(n)||'').trim();};
+  var k=f.getAttribute('data-f'), d=new FormData(f), g=function(n){return String(d.get(n)||'').trim();}, btn=f.querySelector('button[type=submit]');
+  if(btn) btn.disabled=true;
+  var done=function(m){if(m) fail(f,m); if(btn) btn.disabled=false;};
   if(k==='auth'){
     var em=g('email').toLowerCase(), pw=g('pw');
-    if(!/^\S+@\S+\.\S+$/.test(em)) return fail(f,'Inserisci un’email valida.');
+    if(!/^\S+@\S+\.\S+$/.test(em)) return done('Inserisci un’email valida.');
     if(S.mode==='reg'){
-      if(g('biz').length<2) return fail(f,'Inserisci il nome dell’attività.');
-      if(g('tel').replace(/\D/g,'').length<6) return fail(f,'Inserisci il numero WhatsApp.');
-      if(pw.length<4) return fail(f,'La password deve avere almeno 4 caratteri.');
-      if(D.a[em]) return fail(f,'Questa email è già registrata: accedi.');
+      if(g('biz').length<2) return done('Inserisci il nome dell’attività.');
+      if(g('tel').replace(/\D/g,'').length<6) return done('Inserisci il numero WhatsApp.');
+      if(pw.length<6) return done('La password deve avere almeno 6 caratteri.');
       var b=demoOf(S.trade);
-      A={email:em,pw:pw,tel:g('tel'),trade:S.trade,start:Date.now(),active:false,biz:{name:g('biz'),reward:b.reward,slots:b.slots,theme:b.theme},clients:[]};
-      save();
-      if(CONFIG.endpoint){try{fetch(CONFIG.endpoint,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({subject:'Nuova registrazione Tessera',email:em,phone:g('tel'),name:g('biz'),trade:S.trade})});}catch(x){}}
-      go('panel'); toast('Prova gratuita attiva: 3 giorni'); return;
+      var r=await SB.auth.signUp({email:em,password:pw,options:{data:{trade:S.trade,biz_name:g('biz'),phone:g('tel'),reward:b.reward,slots:b.slots,theme:b.theme}}});
+      if(r.error) return done(/registered/i.test(r.error.message)?'Questa email è già registrata: accedi.':'Registrazione non riuscita: '+r.error.message);
+      if(!r.data.session){f.innerHTML='<p class="banner ok">Controlla la tua email e conferma l’indirizzo, poi accedi per iniziare i 3 giorni di prova.</p>';return;}
+      await loadMe(); go('panel'); toast('Prova gratuita attiva: 3 giorni'); return;
     }
-    if(!D.a[em]||D.a[em].pw!==pw) return fail(f,'Email o password non corretti.');
-    A=D.a[em]; save(); go('panel'); return;
+    var r1=await SB.auth.signInWithPassword({email:em,password:pw});
+    if(r1.error) return done(/confirm/i.test(r1.error.message)?'Conferma prima l’email che ti abbiamo inviato.':'Email o password non corretti.');
+    await loadMe(); if(!A) return done('Nessun profilo titolare per questa email.');
+    go('panel'); return;
+  }
+  if(k==='alogin'){
+    var em2=g('email').toLowerCase(), pw2=g('pw'), ar=S.mode==='areg';
+    var r2=ar?await SB.auth.signUp({email:em2,password:pw2}):await SB.auth.signInWithPassword({email:em2,password:pw2});
+    if(r2.error) return done(ar?'Non riuscito: '+r2.error.message:'Email o password non corretti.');
+    if(ar&&!r2.data.session) return done('Account creato: conferma l’email, poi accedi.');
+    await loadAdm(); if(!ADM) return done(ar?'Account creato. Ora va abilitato come super admin.':'Questo account non è abilitato come super admin.');
+    render(true); return;
   }
   if(k==='code'){
-    if(g('code').toUpperCase().replace(/\s/g,'')===codeFor(A.email)){A.active=true;save();render(true);toast('Profilo attivato');}
-    else fail(f,'Codice non valido.'); return;
+    var rc=await SB.rpc('tessera_redeem',{p_code:g('code')});
+    if(rc.data===true){await loadMe();render(true);toast('Profilo attivato');} else done('Codice non valido.'); return;
   }
   if(k==='cl'){
-    if(g('name').length<2) return fail(f,'Inserisci il nome del cliente.');
-    A.clients.unshift({id:Date.now().toString(36),name:g('name'),phone:g('phone'),code:mk(),pts:0});
-    save(); render(false); toast('Card creata'); return;
+    if(g('name').length<2) return done('Inserisci il nome del cliente.');
+    var ri=await SB.from('tessera_clients').insert({owner_id:A.id,name:g('name'),phone:g('phone')||null}).select().single();
+    if(ri.error) return done('Non riuscito: '+ri.error.message);
+    A.clients.unshift(ri.data); render(false); toast('Card creata'); return;
   }
   if(k==='set'){
     var n=parseInt(g('slots'),10); if(isNaN(n)) n=A.biz.slots; n=Math.max(3,Math.min(24,n));
-    A.biz.name=g('name')||A.biz.name; A.biz.reward=g('reward')||A.biz.reward; A.biz.slots=n;
-    var th=g('theme'); if(THEMES[th]) A.biz.theme=th;
-    A.clients.forEach(function(c){c.pts=Math.min(c.pts,n);});
-    save(); render(false); toast('Salvato'); return;
-  }
-  if(k==='pin'){ if(g('pin')===CONFIG.pin){S.pin=true;render(true);} else fail(f,'PIN non corretto.'); return; }
-  if(k==='sel'){
-    var em2=g('email').toLowerCase(); if(!/^\S+@\S+\.\S+$/.test(em2)) return;
-    var code=codeFor(em2), msg='Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code;
-    S.res='<div class="pbox lock" style="margin-top:16px"><span class="small">Codice di attivazione</span><div class="bigcode">'+code+'</div><a class="btn primary block" target="_blank" rel="noopener" href="'+waLink(g('tel'),msg)+'">Invia su WhatsApp</a><a class="btn block" style="margin-top:10px" href="mailto:'+esc(em2)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Invia per email</a></div>';
-    render(false);
+    var th=g('theme'); if(!THEMES[th]) th=A.biz.theme;
+    var rs=await SB.from('tessera_owners').update({biz_name:g('name')||A.biz.name,reward:g('reward')||A.biz.reward,slots:n,theme:th}).eq('id',A.id);
+    if(rs.error) return done('Non riuscito: '+rs.error.message);
+    await SB.from('tessera_clients').update({pts:n}).gt('pts',n);
+    await loadMe(); render(false); toast('Salvato'); return;
   }
 });
 /* 3D: la card segue il dito/mouse, a riposo oscilla piano */
@@ -659,9 +698,10 @@ document.addEventListener('pointermove',function(e){
   }
   requestAnimationFrame(loop);
 })(0);
+async function boot(){try{await Promise.all([loadMe(),loadAdm()]);}catch(e){} route();render(true);}
 function route(){ if(location.hash==='#venditore'){S.view='seller';} else {var h=hashTrade(); if(h) S.trade=h; if(S.view==='seller') S.view='home';} }
 window.addEventListener('hashchange',function(){route();render(true);});
-route(); render(true);
+boot();
 if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
 
 })();
