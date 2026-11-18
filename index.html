@@ -344,6 +344,38 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .hist li{display:flex;justify-content:space-between;gap:10px;font-size:14px;border-bottom:1px solid var(--line);padding-bottom:8px}
 .hist small{color:var(--muted)}
 .cardv .acts{justify-content:center;flex-wrap:wrap}
+
+/* ===== landing 3D ===== */
+.hero2{position:relative;padding-block:46px 0}
+.hero2 h1.big{font-size:clamp(38px,8.4vw,76px)}
+.hero2 .scene3{position:absolute;inset:0;perspective:800px;pointer-events:none;z-index:-1}
+.hero2 .coin{opacity:.9}
+.hero2 .c1{top:6%;left:6%;right:auto}.hero2 .c2{top:34%;left:auto;right:5%;bottom:auto;--z:60px}.hero2 .c3{top:62%;left:12%;right:auto}
+@media(max-width:700px){.hero2 .coin{transform:scale(.7)}.hero2 .c1{left:0}.hero2 .c2{right:0}}
+.cf{position:relative;height:430px;margin:6px calc(50% - 50vw) 0;overflow:hidden;perspective:1300px;touch-action:pan-y;cursor:grab;user-select:none;-webkit-user-select:none;outline:none}
+.cf.drag{cursor:grabbing}.cf:focus-visible{box-shadow:inset 0 0 0 2px var(--brand)}
+.cf-in{position:absolute;inset:0;transform-style:preserve-3d}
+.floor{position:absolute;left:50%;bottom:-70px;width:170vw;height:360px;transform:translateX(-50%) perspective(420px) rotateX(64deg);background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:linear-gradient(transparent,#000 55%,transparent);mask-image:linear-gradient(transparent,#000 55%,transparent);animation:gridm 2.4s linear infinite}
+@keyframes gridm{to{background-position:0 52px}}
+.cfi{position:absolute;left:50%;top:44px;width:300px;margin-left:-150px;transition:transform .8s cubic-bezier(.2,.8,.2,1),opacity .5s,filter .5s;will-change:transform}
+.cfi.off{visibility:hidden;pointer-events:none}
+.cfi::after{content:"";position:absolute;left:8%;right:8%;bottom:-34px;height:22px;border-radius:50%;background:var(--glow);opacity:.45;filter:blur(18px);transform:translateZ(-1px)}
+.cfi .tl{position:relative;transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .25s ease-out}
+.cfi .card{pointer-events:none;box-shadow:0 40px 60px -30px rgba(10,15,60,.6)}
+.cfi .gl{position:absolute;inset:0;border-radius:24px;pointer-events:none;opacity:0;transition:opacity .3s;mix-blend-mode:soft-light;background:radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.95),transparent 55%)}
+.cfi.act .gl{opacity:.7}
+.cfc{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:6px}
+.cfl{min-width:200px;text-align:center}.cfl b{display:block;font:800 22px var(--font-display);letter-spacing:-.02em}.cfl span{font-size:14px;color:var(--muted)}
+.nav{width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:24px;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .15s,background .2s}
+.nav:hover{background:var(--soft)}.nav:active{transform:scale(.92)}
+.cfs{display:flex;gap:8px;overflow-x:auto;padding:16px 2px 6px;scrollbar-width:none}.cfs::-webkit-scrollbar{display:none}
+.cfs .tchip{flex:none}
+.land-cta{display:flex;justify-content:center;margin-top:10px}
+.steps3 li{opacity:0;transform:perspective(900px) translateY(30px) rotateX(-14deg)}
+.steps3.in li{opacity:1;transform:none;transition:opacity .7s,transform .8s cubic-bezier(.2,.8,.2,1);transition-delay:calc(var(--i)*140ms)}
+@media(hover:hover){.steps3.in li:hover{transform:rotateX(8deg) rotateY(-7deg) translateZ(14px);transition-delay:0s;transition-duration:.4s}}
+@media(max-width:700px){.cf{height:380px}.cfi{width:250px;margin-left:-125px;top:36px}}
+@media(prefers-reduced-motion:reduce){.floor,.hero2 .coin{animation:none}.cfi{transition:none}.steps3 li{opacity:1;transform:none}}
 </style>
 
 <div class="glow" aria-hidden="true"><i></i><i></i></div>
@@ -608,14 +640,59 @@ function cardView(){
 }
 function cardLink(c){return location.href.split('#')[0].split('?')[0]+'#c='+c.secret;}
 function home(){
-  var set=function(dup){return TRADES.map(function(t){var o=demoOf(t.k);return '<div class="rc"'+(dup?' aria-hidden="true"':'')+'>'+cardHtml(o,Math.round(o.slots*.6),'Il tuo cliente')+'<p class="rl">'+esc(t.label)+'</p></div>';}).join('');};
-  return '<section class="hero2"><div><p class="eyebrow"><i>'+ico('sparkle')+'</i>Card fedeltà digitale per attività locali</p>'+
+  var chips=TRADES.map(function(t,i){return '<button class="tchip" type="button" data-t="'+i+'" aria-pressed="false">'+ico(t.ico)+esc(t.label)+'</button>';}).join('');
+  var cards=TRADES.map(function(t,i){var o=demoOf(t.k);return '<div class="cfi" data-i="'+i+'"><div class="tl">'+cardHtml(o,Math.round(o.slots*.6),'Il tuo cliente')+'<i class="gl"></i></div></div>';}).join('');
+  return '<section class="hero2"><div class="scene3" aria-hidden="true"><div class="coin c1">'+ico('sparkle')+'</div><div class="coin c2">'+ico('cup')+'</div><div class="coin c3">'+ico('scissors')+'</div></div><div><p class="eyebrow"><i>'+ico('sparkle')+'</i>Card fedeltà digitale per attività locali</p>'+
   '<h1 class="big">Fai tornare i clienti.<br><em>Senza tessere di carta.</em></h1>'+
-  '<p class="lead">Una card su misura per ogni mestiere: barbieri, bar, pizzerie, negozi e tanti altri. Provala 3 giorni, gratis.</p>'+
+  '<p class="lead">Una card su misura per ogni mestiere. Trascina, sfoglia e trova la tua. Provala 3 giorni, gratis.</p>'+
   '<div class="ctas"><button class="btn primary" data-a="reg">Prova 3 giorni gratis</button><button class="btn" data-a="login">Ho già un account</button></div></div></section>'+
-  '<div class="reel" role="region" aria-label="Le card per ogni tipo di attività"><div class="reel-track">'+set(false)+set(true)+'</div></div>'+
-  '<ol class="steps3"><li><b>1</b>Registrati e scegli la tua attività</li><li><b>2</b>Prova gratis per 3 giorni</li><li><b>3</b>Gestisci le card dei tuoi clienti</li></ol>'+
+  '<div class="cf" id="cf" tabindex="0" role="region" aria-roledescription="carosello" aria-label="Le card per ogni tipo di attività"><div class="floor"></div><div class="cf-in">'+cards+'</div></div>'+
+  '<div class="cfc"><button class="nav" type="button" data-d="-1" aria-label="Card precedente">‹</button><div class="cfl" aria-live="polite"><b id="cfl"></b><span id="cfp"></span></div><button class="nav" type="button" data-d="1" aria-label="Card successiva">›</button></div>'+
+  '<div class="cfs" id="cfs">'+chips+'</div>'+
+  '<div class="land-cta"><button class="btn primary" data-a="reg">Crea la card per la mia attività</button></div>'+
+  '<ol class="steps3" id="st3"><li style="--i:0"><b>1</b>Registrati e scegli la tua attività</li><li style="--i:1"><b>2</b>Prova gratis per 3 giorni</li><li style="--i:2"><b>3</b>Gestisci le card dei tuoi clienti</li></ol>'+
   '<p class="fine">Finita la prova, attivi il tuo profilo con un codice che ti inviamo per email dopo il pagamento.</p>';
+}
+function initLand(){
+  var cf=$('#cf'); if(!cf) return;
+  var items=[].slice.call(cf.querySelectorAll('.cfi')),chips=[].slice.call(document.querySelectorAll('#cfs .tchip')),n=items.length,cur=0,timer=0,drag=null,hover=false;
+  for(var q=0;q<n;q++) if(TRADES[q].k===S.trade) cur=q;
+  function place(){
+    var mob=window.innerWidth<700,gap=mob?120:210;
+    items.forEach(function(el,i){
+      var d=(((i-cur)%n)+n)%n; if(d>n/2) d-=n; var a=Math.abs(d),sg=d<0?-1:1;
+      el.style.transform='translateX('+(d*gap)+'px) translateZ('+(-a*150)+'px) rotateY('+(d?-sg*44:0)+'deg)';
+      el.style.zIndex=10-a; el.style.opacity=a>3?0:1-a*.2; el.style.filter=a?'brightness('+(1-a*.14)+')':'none';
+      el.classList.toggle('off',a>3); el.classList.toggle('act',!a);
+      if(a){var t=el.querySelector('.tl');t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');}
+    });
+    var t=TRADES[cur]; S.trade=t.k;
+    $('#cfl').textContent=t.label; $('#cfp').textContent=t.words;
+    chips.forEach(function(c,i){c.setAttribute('aria-pressed',i===cur?'true':'false');});
+    var act=chips[cur]; if(act&&act.parentNode.scrollTo) act.parentNode.scrollTo({left:act.offsetLeft-act.parentNode.clientWidth/2+act.offsetWidth/2,behavior:REDUCED?'auto':'smooth'});
+    document.documentElement.style.setProperty('--glow',(THEMES[t.theme]||THEMES.cobalto).c1);
+  }
+  function go(i){cur=((i%n)+n)%n;place();}
+  function auto(){clearInterval(timer);if(REDUCED)return;timer=setInterval(function(){if(!document.body.contains(cf)){clearInterval(timer);return;} if(!hover&&!drag&&!document.hidden) go(cur+1);},3600);}
+  cf.addEventListener('pointerdown',function(e){drag={x:e.clientX,m:0};});
+  cf.addEventListener('pointermove',function(e){
+    if(drag){var dx=e.clientX-drag.x;drag.m=Math.max(drag.m,Math.abs(dx));cf.classList.toggle('drag',drag.m>6);if(Math.abs(dx)>70){go(cur+(dx<0?1:-1));drag.x=e.clientX;}return;}
+    if(e.pointerType==='touch') return;
+    var el=items[cur].querySelector('.tl'),r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+    if(Math.abs(x)>1.2||Math.abs(y)>1.2){el.style.setProperty('--rx','0deg');el.style.setProperty('--ry','0deg');return;}
+    el.style.setProperty('--ry',(x*22).toFixed(1)+'deg');el.style.setProperty('--rx',(-y*18).toFixed(1)+'deg');
+    el.style.setProperty('--gx',((x+.5)*100)+'%');el.style.setProperty('--gy',((y+.5)*100)+'%');
+  });
+  function up(e){if(!drag)return;var moved=drag.m>6;drag=null;cf.classList.remove('drag');
+    if(!moved){var it=document.elementFromPoint(e.clientX,e.clientY),c=it&&it.closest('.cfi');if(c)go(+c.getAttribute('data-i'));}}
+  cf.addEventListener('pointerup',up); cf.addEventListener('pointercancel',function(){drag=null;cf.classList.remove('drag');});
+  cf.addEventListener('mouseenter',function(){hover=true;}); cf.addEventListener('mouseleave',function(){hover=false;var t=items[cur].querySelector('.tl');t.style.setProperty('--rx','0deg');t.style.setProperty('--ry','0deg');});
+  cf.addEventListener('keydown',function(e){if(e.key==='ArrowRight'){go(cur+1);e.preventDefault();}if(e.key==='ArrowLeft'){go(cur-1);e.preventDefault();}});
+  document.querySelectorAll('.cfc .nav').forEach(function(b){b.addEventListener('click',function(){go(cur+(+b.getAttribute('data-d')));auto();});});
+  chips.forEach(function(c,i){c.addEventListener('click',function(){go(i);auto();});});
+  window.addEventListener('resize',function(){if(document.body.contains(cf))place();});
+  place(); auto();
+  var st=$('#st3'); if(st){ if('IntersectionObserver' in window){var io=new IntersectionObserver(function(en){if(en[0].isIntersecting){st.classList.add('in');io.disconnect();}},{threshold:.25});io.observe(st);} else st.classList.add('in'); }
 }
 function stage(flip){
   var t=tradeOf(S.trade),o=demoOf(t.k),c=$('#cs'); if(!c) return;
@@ -695,7 +772,7 @@ function render(fresh){
   var hb=$('#hb'); hb.setAttribute('data-a',A?'panel':'login'); hb.textContent=A?'Il mio pannello':'Accedi'; hb.style.display=v==='card'?'none':'';
   var inC=v==='card'&&C, inP=(v==='panel'&&A)||inC, th=THEMES[inC?C.theme:(inP?A.biz.theme:tradeOf(S.trade).theme)]||THEMES.cobalto, r=document.documentElement.style;
   r.setProperty('--glow',th.c1); if(inP) r.setProperty('--brand',th.b); else r.removeProperty('--brand');
-  if(v==='home') stage(false);
+  if(v==='home'){stage(false);initLand();}
   applyFilter();
 }
 function applyFilter(){
