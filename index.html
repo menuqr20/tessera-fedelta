@@ -581,18 +581,20 @@ function cardHtml(o,pts,holder){
 /* ---- app v5: Supabase ---- */
 var CONFIG={wa:''};
 var SB=window.supabase.createClient('https://vxxmgymywnjpkbnhfbpx.supabase.co','sb_publishable_h9dXCZ4OlfiGcwlqFChUQg_qE-mdHrW');
-var A=null,ADM=null,C=null,S={trade:hashTrade()||'barbiere',view:'home',mode:'reg',err:'',open:null,f:'all',res:{},secret:null};
+var A=null,ADM=null,C=null,S={trade:hashTrade()||'barbiere',view:'home',mode:'reg',err:'',open:null,f:'all',res:{},resd:{},dur:{},secret:null};
 function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.remove('show');},2600);}
 function demoOf(k){var d=defaults(k);return {trade:k,name:d.name,reward:d.reward,slots:d.slots,theme:d.theme};}
 function left(){return Math.ceil((new Date(A.trial)-Date.now())/864e5);}
-function status(){return A.status==='active'?'ok':(A.status==='trial'&&left()>0?'trial':'lock');}
+function fdate(d){return new Date(d).toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});}
+function dleft(d){return Math.ceil((new Date(d)-Date.now())/864e5);}
+function status(){return A.status==='active'?(!A.until||dleft(A.until)>0?'ok':'lock'):(A.status==='trial'&&left()>0?'trial':'lock');}
 function waLink(n,t){var d=String(n||'').replace(/\D/g,'');if(d.length===10&&d.charAt(0)==='3')d='39'+d;return 'https://wa.me/'+d+'?text='+encodeURIComponent(t);}
 function cl(id){for(var i=0;i<A.clients.length;i++)if(A.clients[i].id===id)return A.clients[i];return null;}
 async function loadMe(){
   var s=(await SB.auth.getSession()).data.session; if(!s){A=null;return;}
   var r=await SB.from('tessera_owners').select('*').eq('id',s.user.id).maybeSingle(); if(!r.data){A=null;return;}
   var o=r.data,c=await SB.from('tessera_clients').select('*').eq('owner_id',o.id).order('created_at',{ascending:false});
-  A={id:o.id,email:o.email,trade:o.trade,status:o.status,trial:o.trial_ends_at,biz:{name:o.biz_name,reward:o.reward,slots:o.slots,theme:o.theme},clients:c.data||[]};
+  A={id:o.id,email:o.email,trade:o.trade,status:o.status,trial:o.trial_ends_at,until:o.active_until,biz:{name:o.biz_name,reward:o.reward,slots:o.slots,theme:o.theme},clients:c.data||[]};
 }
 /* ---- export / backup ---- */
 function dl(name,text,type){var b=new Blob([text],{type:type+';charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u);},2000);}
@@ -751,9 +753,9 @@ function panel(){
   var b=A.biz,t=tradeOf(A.trade),st=status();
   var h='<div class="pw"><div class="admhead"><span class="badge">'+ico(t.ico)+'</span><div><h2>'+esc(b.name)+'</h2><p class="small">Pannello · '+esc(t.label)+'</p></div><button class="btn sm" data-a="expc" title="Scarica i tuoi clienti">Esporta</button><button class="btn sm" data-a="logout">Esci</button></div>';
   if(st==='lock'){
-    return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':'La prova è finita')+'</h3><p class="small" style="margin-bottom:14px">Per continuare ti contatteremo via email all’indirizzo <b>'+esc(A.email)+'</b>. Dopo il pagamento ricevi un codice: inseriscilo qui per riattivare il pannello. I tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+'</div></div>';
+    return h+'<div class="pbox lock"><h3>'+(A.status==='suspended'?'Profilo sospeso':(A.status==='active'?'Abbonamento scaduto':'La prova è finita'))+'</h3><p class="small" style="margin-bottom:14px">Per continuare ti contatteremo via email all’indirizzo <b>'+esc(A.email)+'</b>. Dopo il pagamento ricevi un codice: inseriscilo qui per riattivare il pannello. I tuoi clienti e le loro card sono al sicuro.</p>'+codeForm()+'</div></div>';
   }
-  h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><b>Profilo attivo</b></div>';
+  h+=st==='trial'?'<div class="banner"><span><b>Prova gratuita</b> · '+left()+(left()===1?' giorno rimasto':' giorni rimasti')+'</span></div><details class="pbox"><summary>Ho il codice di attivazione</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'<div class="banner ok"><span><b>Profilo attivo</b> · '+(A.until?'fino al '+fdate(A.until)+(dleft(A.until)<=7?' ('+dleft(A.until)+(dleft(A.until)===1?' giorno rimasto)':' giorni rimasti)'):''):'a vita')+'</span></div>'+(A.until&&dleft(A.until)<=7?'<details class="pbox"><summary>Rinnova con un nuovo codice</summary><div style="margin-top:12px">'+codeForm()+'</div></details>':'');
   var rows=A.clients.map(function(c,i){var full=c.pts>=b.slots,p=Math.round(c.pts/b.slots*100);
     return '<div class="cl" style="--i:'+i+'" data-s="'+esc([c.name,c.phone,c.email,c.code].join(' ').toLowerCase())+'" data-p="'+esc(String(c.phone||'').replace(/\D/g,''))+'"><button class="who" data-a="open" data-id="'+c.id+'"><span class="mini">'+ico(t.ico)+'</span><span><b>'+esc(c.name)+'</b><small>'+esc([c.phone,c.email].filter(Boolean).join(' · ')||'Apri la card')+'</small></span></button><div class="acts"><span class="cnt">'+c.pts+'/'+b.slots+'</span>'+
     (full?'<button class="btn sm primary" data-a="reset" data-id="'+c.id+'">Svuota card</button>':'<button class="btn sm" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn sm primary" data-a="plus" data-id="'+c.id+'" aria-label="Aggiungi un tassello">+1</button>')+'</div><div class="bar"><i style="width:'+p+'%"></i></div></div>';}).join('');
@@ -774,7 +776,7 @@ function delDlg(){
   return '<div class="dlg" role="alertdialog" aria-modal="true" aria-label="Conferma eliminazione"><div class="box"><h3>Ultima conferma</h3><p class="small">L’eliminazione di <b>'+esc(c.name)+'</b> è definitiva e non si può annullare: il suo link e il suo QR smetteranno di funzionare.</p><div class="field"><label for="dci">Scrivi <b>ELIMINA</b> per confermare</label><input id="dci" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false"></div><div class="macts"><button class="btn" data-a="delno">Annulla</button><button class="btn danger solid" id="dcb" data-a="delgo" disabled>Elimina</button></div></div></div>';
 }
 function ost(o){
-  if(o.status==='active') return ['ok','Attivo'];
+  if(o.status==='active'){ if(!o.active_until) return ['ok','Attivo · a vita']; var dd=dleft(o.active_until); return dd>0?['ok','Attivo · '+dd+' gg']:['bad','Scaduto']; }
   if(o.status==='suspended') return ['bad','Sospeso'];
   var d=Math.ceil((new Date(o.trial_ends_at)-Date.now())/864e5); return d>0?['trial','Prova · '+d+' gg']:['bad','Scaduto'];
 }
@@ -783,10 +785,10 @@ function sadmin(){
   os.forEach(function(o){cnt[ost(o)[0]]++;});
   var chips=[['all','Tutti'],['trial','In prova'],['ok','Attivi'],['bad','Scaduti/sospesi']].map(function(x){return '<button class="tchip" data-a="af" data-k="'+x[0]+'" aria-pressed="'+(S.f===x[0])+'">'+x[1]+' · '+cnt[x[0]]+'</button>';}).join('');
   var rows=os.filter(function(o){return S.f==='all'||ost(o)[0]===S.f;}).map(function(o,i){
-    var s=ost(o),code=S.res[o.id],msg=code?'Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code:'';
+    var s=ost(o),code=S.res[o.id],dd0=S.resd[o.id],dtxt=dd0?('valido '+dd0+' giorni dall’attivazione'):'senza scadenza',msg=code?'Ciao! Pagamento ricevuto, grazie. Il tuo codice di attivazione Tessera è: '+code+' ('+dtxt+')':'',sel='<select id="dur-'+o.id+'" aria-label="Durata" style="padding:8px;border-radius:10px">'+[['7','7 giorni'],['15','15 giorni'],['30','30 giorni'],['60','60 giorni'],['90','90 giorni'],['180','180 giorni'],['365','1 anno'],['life','A vita'],['custom','Altro…']].map(function(x){return '<option value="'+x[0]+'"'+((S.dur[o.id]||'30')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('')+'</select>';
     return '<div class="cl" style="--i:'+i+'"><div class="who" style="cursor:default"><span class="mini">'+ico(tradeOf(o.trade).ico)+'</span><span><b>'+esc(o.biz_name)+'</b><small>'+esc(o.email)+(o.phone?' · '+esc(o.phone):'')+' · '+o.n+' clienti</small></span></div><span class="pill '+s[0]+'">'+s[1]+'</span>'+
-    '<div class="acts wide"><button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
-    (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b></span><span class="acts"><a class="btn sm primary" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
+    '<div class="acts wide">'+sel+'<button class="btn sm primary" data-a="acode" data-id="'+o.id+'">Genera codice</button>'+(o.status==='active'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="active">Attiva</button>')+'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="trial" data-d="3">+3 giorni</button>'+(o.status==='suspended'?'':'<button class="btn sm" data-a="aset" data-id="'+o.id+'" data-st="suspended">Sospendi</button>')+'</div>'+
+    (code?'<div class="banner wide" style="margin:0"><span>Codice: <b>'+esc(code)+'</b> · '+dtxt+'</span><span class="acts"><a class="btn sm primary" href="mailto:'+esc(o.email)+'?subject='+encodeURIComponent('Il tuo codice Tessera')+'&body='+encodeURIComponent(msg)+'">Email</a></span></div>':'')+'</div>';}).join('');
   return '<div class="pw"><div class="admhead"><span class="badge">'+ico('sparkle')+'</span><div><h2>Super admin</h2><p class="small">Iscrizioni e codici di attivazione</p></div><button class="btn sm" data-a="expall" title="Backup completo">Backup</button><button class="btn sm" data-a="logout">Esci</button></div><div class="strip" style="padding-top:0">'+chips+'</div><div class="pbox">'+(rows||'<p class="small">Nessuna iscrizione in questa lista.</p>')+'</div></div>';
 }
 function seller(){
@@ -933,8 +935,11 @@ document.addEventListener('click',async function(e){
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
   if(a==='forget'){lsSet(null);S.secret=null;C=null;history.replaceState(null,'',location.pathname+location.search);go('home');return;}
   if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
-  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};if(location.hash==='#venditore')location.hash='';go('home');return;}
-  if(a==='acode'){var r=await SB.rpc('tessera_make_code',{p_owner:id});if(r.error)return toast('Errore: '+r.error.message);S.res[id]=r.data;render(false);return;}
+  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};S.resd={};if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='acode'){var se=document.getElementById('dur-'+id),dv=se?se.value:'30',dn=null;S.dur[id]=dv;
+    if(dv==='custom'){var pr=prompt('Quanti giorni di durata?');if(pr===null)return;dn=parseInt(pr,10);if(!(dn>0&&dn<=3650))return toast('Numero di giorni non valido');}
+    else if(dv!=='life')dn=parseInt(dv,10);
+    var r=await SB.rpc('tessera_make_code',{p_owner:id,p_days:dn});if(r.error)return toast('Errore: '+r.error.message);S.res[id]=r.data;S.resd[id]=dn;render(false);return;}
   if(a==='aset'){var r2=await SB.rpc('tessera_admin_set',{p_owner:id,p_status:t.getAttribute('data-st'),p_days:parseInt(t.getAttribute('data-d')||'0',10)});if(r2.error)return toast('Errore: '+r2.error.message);await loadAdm();render(false);return;}
   if(!A) return;
   if(a==='open'){S.open=id;render(false);return;}
@@ -1022,7 +1027,7 @@ document.addEventListener('submit',async function(e){
   }
   if(k==='code'){
     var rc=await SB.rpc('tessera_redeem',{p_code:g('code')});
-    if(rc.data===true){await loadMe();render(true);toast('Profilo attivato');} else done('Codice non valido.'); return;
+    if(rc.data===true){await loadMe();render(true);toast(A&&A.until?'Attivo fino al '+fdate(A.until):'Profilo attivato a vita');} else done('Codice non valido.'); return;
   }
   if(k==='cl'){
     if(g('name').length<2) return done('Inserisci il nome del cliente.');
