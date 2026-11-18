@@ -298,6 +298,17 @@ footer.f{padding:10px 0 calc(34px + env(safe-area-inset-bottom,0px));font-size:1
 .face.back{position:absolute;inset:0;transform:rotateY(180deg);display:grid;place-content:center;justify-items:center;gap:8px;text-align:center;background:var(--surface);border-radius:24px;padding:20px}
 .qrb{width:190px;max-width:100%;background:#fff;padding:10px;border-radius:14px}.qrb svg{display:block;width:100%;height:auto}
 .macts{display:flex;gap:10px;justify-content:center}
+.scanbtn{margin:0 0 16px}.scanbtn svg{width:22px;height:22px}
+.scn{position:fixed;inset:0;z-index:70;background:#05060d;color:#fff;overflow:hidden}
+.scn video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scn .top{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top,0px)) 16px 24px;background:linear-gradient(rgba(0,0,0,.65),transparent)}
+.scn .top b{font-size:17px}
+.scn .fr{position:absolute;left:50%;top:40%;width:min(66vw,270px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:22px;border:3px solid var(--brand);box-shadow:0 0 0 100vmax rgba(5,6,13,.5);pointer-events:none}
+.scn .bot{position:absolute;bottom:0;left:0;right:0;display:grid;gap:10px;padding:28px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(transparent,rgba(0,0,0,.8))}
+.scn .res{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:52px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.14);backdrop-filter:blur(8px);font-size:15px;font-weight:600}
+.scn .res.ok{background:#15803d}.scn .res.bad{background:#b42318}.scn .res.warn{background:#b45309}
+.scn form{display:flex;gap:8px}.scn form input{flex:1;min-width:0;min-height:48px;padding:0 14px;border-radius:14px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font-size:16px;text-transform:uppercase}
+.scn form input::placeholder{color:rgba(255,255,255,.6);text-transform:none}
 #toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--fg);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;pointer-events:none;transition:.3s;z-index:60}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 @media (max-width:820px){.hero2{grid-template-columns:1fr;gap:12px}.steps3{grid-template-columns:1fr}.addf{grid-template-columns:1fr}}
@@ -618,7 +629,7 @@ function panel(){
     return '<div class="cl" style="--i:'+i+'"><button class="who" data-a="open" data-id="'+c.id+'"><span class="mini">'+ico(t.ico)+'</span><span><b>'+esc(c.name)+'</b><small>'+esc(c.phone||'Apri la card')+'</small></span></button><div class="acts"><span class="cnt">'+c.pts+'/'+b.slots+'</span>'+
     (full?'<button class="btn sm primary" data-a="reset" data-id="'+c.id+'">Premio ritirato</button>':'<button class="btn sm" data-a="minus" data-id="'+c.id+'" aria-label="Togli un tassello">−1</button><button class="btn sm primary" data-a="plus" data-id="'+c.id+'" aria-label="Aggiungi un tassello">+1</button>')+'</div><div class="bar"><i style="width:'+p+'%"></i></div></div>';}).join('');
   var sw=Object.keys(THEMES).map(function(k,i){var th=THEMES[k];return '<input type="radio" name="theme" id="sw'+i+'" value="'+k+'"'+(k===b.theme?' checked':'')+'><label for="sw'+i+'" style="background:linear-gradient(150deg,'+th.c1+','+th.c2+')" title="'+th.n+'"></label>';}).join('');
-  return h+'<div class="pbox"><h3>Clienti ('+A.clients.length+')</h3><form data-f="cl" class="addf" novalidate><div class="field"><label for="n1">Nome</label><input id="n1" name="name" type="text" maxlength="40"></div><div class="field"><label for="n2">Telefono <span class="opt">(facoltativo)</span></label><input id="n2" name="phone" type="tel"></div><button class="btn primary" type="submit">Crea card</button></form><p class="err"></p>'+
+  return h+'<div class="pbox"><h3>Clienti ('+A.clients.length+')</h3><button class="btn primary block scanbtn" type="button" data-a="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>Scansiona QR cliente</button><form data-f="cl" class="addf" novalidate><div class="field"><label for="n1">Nome</label><input id="n1" name="name" type="text" maxlength="40"></div><div class="field"><label for="n2">Telefono <span class="opt">(facoltativo)</span></label><input id="n2" name="phone" type="tel"></div><button class="btn primary" type="submit">Crea card</button></form><p class="err"></p>'+
     (rows||'<p class="small">Nessun cliente: crea la prima card qui sopra.</p>')+'</div>'+
     '<details class="pbox"><summary>Personalizza la card</summary><form data-f="set" novalidate style="margin-top:14px"><div class="field"><label for="s1">Nome attività</label><input id="s1" name="name" type="text" maxlength="28" value="'+esc(b.name)+'"></div><div class="field"><label for="s2">Premio</label><input id="s2" name="reward" type="text" maxlength="40" value="'+esc(b.reward)+'"></div><div class="field"><label for="s3">Tasselli (3–24)</label><input id="s3" name="slots" type="number" min="3" max="24" value="'+b.slots+'"></div><div class="field"><span class="l">Colore</span><div class="swatches">'+sw+'</div></div><button class="btn primary block" type="submit">Salva</button></form></details></div>';
 }
@@ -660,6 +671,92 @@ function render(fresh){
 function go(v){S.view=v;S.err='';S.open=null;render(true);window.scrollTo(0,0);}
 function fail(f,m){var e=f.querySelector('.err'); if(e) e.textContent=m;}
 
+/* ---- lettore QR nel pannello: inquadra la card del cliente e aggiunge un tassello ---- */
+var SC={stream:null,raf:0,det:null,busy:false,last:'',lastT:0,tickT:0,undo:null,cv:null};
+function scRes(m,k,undo){var r=$('#scr'); if(!r) return; r.className='res '+(k||''); r.innerHTML='<span>'+esc(m)+'</span>'+(undo?'<button class="btn sm" type="button" data-a="scundo">Annulla</button>':'');}
+function loadJsQR(){return new Promise(function(ok,ko){
+  if(window.jsQR) return ok();
+  var s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js'; s.onload=function(){ok();}; s.onerror=function(){ko();}; document.head.appendChild(s);
+});}
+function openScan(){
+  if($('#scn')||!A) return;
+  var d=document.createElement('div'); d.id='scn'; d.className='scn'; d.setAttribute('role','dialog'); d.setAttribute('aria-label','Scansiona QR cliente');
+  d.innerHTML='<video id="scv" playsinline muted></video><div class="fr"></div>'+
+    '<div class="top"><b>Scansiona QR</b><button class="btn sm" type="button" data-a="scclose">Chiudi</button></div>'+
+    '<div class="bot"><div class="res" id="scr"><span>Inquadra il QR sulla card del cliente</span></div>'+
+    '<form id="scf" autocomplete="off"><input id="scc" type="text" inputmode="text" autocapitalize="characters" placeholder="Oppure scrivi il codice" aria-label="Codice cliente"><button class="btn primary" type="submit">Aggiungi</button></form></div>';
+  document.body.appendChild(d);
+  $('#scf').addEventListener('submit',function(ev){ev.preventDefault(); var i=$('#scc'); var v=i.value; i.value=''; if(v.trim()) scanCode(v,true);});
+  SC.last=''; SC.undo=null; startCam();
+}
+function closeScan(){
+  cancelAnimationFrame(SC.raf);
+  if(SC.stream){SC.stream.getTracks().forEach(function(t){t.stop();}); SC.stream=null;}
+  var d=$('#scn'); if(d) d.remove();
+}
+async function startCam(){
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('nocam');
+    var st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    if(!$('#scn')){st.getTracks().forEach(function(t){t.stop();}); return;}
+    SC.stream=st; var v=$('#scv'); v.srcObject=st; v.muted=true; await v.play();
+    SC.det=null;
+    if('BarcodeDetector' in window){try{SC.det=new BarcodeDetector({formats:['qr_code']});}catch(x){SC.det=null;}}
+    if(!SC.det) await loadJsQR();
+    if(!$('#scn')) return;
+    tick();
+  }catch(x){
+    scRes(x&&x.name==='NotAllowedError'?'Camera non autorizzata: scrivi il codice qui sotto.':'Camera non disponibile: scrivi il codice qui sotto.','bad');
+  }
+}
+function tick(){
+  var v=$('#scv'); if(!v) return;
+  SC.raf=requestAnimationFrame(tick);
+  var now=Date.now(); if(SC.busy||v.readyState<2||now-SC.tickT<130) return;
+  SC.tickT=now; SC.busy=true;
+  (async function(){
+    var txt='';
+    try{
+      if(SC.det){var r=await SC.det.detect(v); if(r&&r.length) txt=r[0].rawValue;}
+      else if(window.jsQR&&v.videoWidth){
+        var w=Math.min(520,v.videoWidth), h=Math.round(w*v.videoHeight/v.videoWidth);
+        if(!SC.cv) SC.cv=document.createElement('canvas'); SC.cv.width=w; SC.cv.height=h;
+        var cx=SC.cv.getContext('2d',{willReadFrequently:true}); cx.drawImage(v,0,0,w,h);
+        var im=cx.getImageData(0,0,w,h), q=jsQR(im.data,w,h,{inversionAttempts:'dontInvert'}); if(q) txt=q.data;
+      }
+    }catch(x){}
+    SC.busy=false; if(txt) scanCode(txt,false);
+  })();
+}
+function findByCode(raw){
+  var k=String(raw||'').trim().toLowerCase(); if(!k) return null;
+  for(var i=0;i<A.clients.length;i++) if(String(A.clients[i].code||'').trim().toLowerCase()===k) return A.clients[i];
+  return null;
+}
+async function scanCode(raw,manual){
+  var k=String(raw).trim().toLowerCase(), now=Date.now();
+  if(!manual&&k===SC.last&&now-SC.lastT<3500) return; /* stesso QR ancora davanti alla camera: non contare due volte */
+  SC.last=k; SC.lastT=now;
+  var c=findByCode(raw);
+  if(!c){scRes('QR non riconosciuto per questa attività','bad'); try{if(navigator.vibrate) navigator.vibrate([60,40,60]);}catch(x){} return;}
+  var n=A.biz.slots;
+  if(c.pts>=n){scRes(c.name+': card già completa, consegna il premio','warn'); return;}
+  var old=c.pts; c.pts=old+1; render(false);
+  try{if(navigator.vibrate) navigator.vibrate(25);}catch(x){}
+  var u=await SB.from('tessera_clients').update({pts:c.pts}).eq('id',c.id);
+  if(u.error){c.pts=old; render(false); scRes('Errore: '+u.error.message,'bad'); return;}
+  SC.undo=c.id;
+  scRes(c.name+' · '+c.pts+'/'+n+(c.pts>=n?' · card completa!':''),'ok',true);
+}
+async function undoScan(){
+  var c=SC.undo&&cl(SC.undo); SC.undo=null; if(!c||c.pts<1) return;
+  var old=c.pts; c.pts=old-1; render(false);
+  var u=await SB.from('tessera_clients').update({pts:c.pts}).eq('id',c.id);
+  if(u.error){c.pts=old; render(false); scRes('Errore: '+u.error.message,'bad'); return;}
+  SC.last=''; scRes('Tassello annullato per '+c.name,'warn');
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('#scn')) closeScan();});
+
 document.addEventListener('click',async function(e){
   var t=e.target.closest('[data-a]'); if(!t) return;
   var a=t.getAttribute('data-a'), id=t.getAttribute('data-id');
@@ -672,12 +769,15 @@ document.addEventListener('click',async function(e){
   if(a==='refresh'){await loadCard();render(false);toast('Card aggiornata');return;}
   if(a==='forget'){lsSet(null);S.secret=null;C=null;history.replaceState(null,'',location.pathname+location.search);go('home');return;}
   if(a==='af'){S.f=t.getAttribute('data-k');render(false);return;}
-  if(a==='logout'){await SB.auth.signOut();A=null;ADM=null;S.res={};if(location.hash==='#venditore')location.hash='';go('home');return;}
+  if(a==='logout'){closeScan();await SB.auth.signOut();A=null;ADM=null;S.res={};if(location.hash==='#venditore')location.hash='';go('home');return;}
   if(a==='acode'){var r=await SB.rpc('tessera_make_code',{p_owner:id});if(r.error)return toast('Errore: '+r.error.message);S.res[id]=r.data;render(false);return;}
   if(a==='aset'){var r2=await SB.rpc('tessera_admin_set',{p_owner:id,p_status:t.getAttribute('data-st'),p_days:parseInt(t.getAttribute('data-d')||'0',10)});if(r2.error)return toast('Errore: '+r2.error.message);await loadAdm();render(false);return;}
   if(!A) return;
   if(a==='open'){S.open=id;render(false);return;}
   if(a==='close'){S.open=null;render(false);return;}
+  if(a==='scan'){openScan();return;}
+  if(a==='scclose'){closeScan();return;}
+  if(a==='scundo'){undoScan();return;}
   if(a==='share'||a==='copy'){
     var cc=cl(id); if(!cc) return; var lk=cardLink(cc);
     if(a==='share'){window.open(waLink(cc.phone,'Ciao '+cc.name+'! Ecco la tua card fedeltà di '+A.biz.name+': '+lk+'\nMostra il QR alla cassa per ricevere i tasselli.'),'_blank','noopener');return;}
