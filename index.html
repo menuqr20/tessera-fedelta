@@ -426,6 +426,7 @@ var THEMES={
   bordeaux:{n:'Bordeaux',b:'#8b1e3f',c1:'#8b1e3f',c2:'#3f0a1c',g:'#f2c879'},
   notte:{n:'Notte',b:'#2b3a67',c1:'#34457a',c2:'#0f1530',g:'#ffc857'},
   viola:{n:'Viola elettrico',b:'#6d3df0',c1:'#7c4dff',c2:'#2e1a8f',g:'#5ef2d6'},
+  oro:{n:'Oro',b:'#9a7412',c1:'#b8902a',c2:'#4a3508',g:'#fff3c4'},
   menta:{n:'Menta',b:'#19a38a',c1:'#1fb89c',c2:'#0b6656',g:'#ffe3a0'}
 };
 var ICONS={
@@ -457,6 +458,7 @@ var ICONS={
   glasses:'<circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M10 14h4M2 14l1.5-6M22 14l-1.5-6"/>',
   wrench:'<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
   phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><circle cx="12" cy="6" r=".6"/><path d="M10 18.5h4"/>',
+  gem:'<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M9 3l-2 6 5 12 5-12-2-6"/>',
   perfume:'<circle cx="12" cy="15" r="6"/><path d="M10 9.2V6.5h4v2.7M9 3h6v3.5H9z"/><path d="M9.5 15a2.5 2.5 0 012.5-2.5"/>'
 };
 var TRADES=[
@@ -488,6 +490,7 @@ var TRADES=[
  {k:'ottico',label:'Ottico',ico:'glasses',name:'Ottica Vista Chiara',pitch:'Dalla lente al cliente fisso.',words:'Ogni visita ti fa vedere meglio.',mark:'meglio',lead:'Occhiali, lenti a contatto e controlli: ogni acquisto vale un tassello.',reward:'Kit pulizia lenti in omaggio',slots:6,theme:'cobalto'},
  {k:'officina',label:'Officina',ico:'wrench',name:'Officina Di Stefano',pitch:'Dal tagliando al cliente fisso.',words:'Ogni tagliando ti porta più lontano.',mark:'lontano',lead:'Tagliandi, riparazioni e controlli: ogni intervento vale un tassello.',reward:'Check-up gratuito del veicolo',slots:6,theme:'grafite'},
  {k:'cover',label:'Cover e telefonia',ico:'phone',name:'Case & Co.',pitch:'Dalla cover al cliente fisso.',words:'Ogni cover ti rende unico.',mark:'unico',lead:'Cover, pellicole e personalizzazioni: ogni acquisto aggiunge un tassello. Al completamento, la cover personalizzata è in regalo.',reward:'Cover personalizzata in omaggio',slots:8,theme:'viola'},
+ {k:'gioielleria',label:'Oro e gioielli',ico:'gem',name:'Gioielleria Aurelia',pitch:'Dal gioiello al cliente fisso.',words:'Ogni gioiello conserva un ricordo.',mark:'ricordo',lead:'Anelli, collane e orologi: ogni acquisto aggiunge un tassello. Al completamento, un regalo prezioso.',reward:'Buono da 30 € in gioielleria',slots:8,theme:'oro'},
  {k:'profumeria',label:'Profumeria',ico:'perfume',name:'Profumeria Essenza',pitch:'Dalla fragranza al cliente fisso.',words:'Ogni profumo lascia una scia.',mark:'scia',lead:'Profumi, trucco e cura della pelle: ogni acquisto aggiunge un tassello.',reward:'Un mini profumo in omaggio',slots:10,theme:'prugna'}
 ];
 function esc(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -596,6 +599,7 @@ var GL={
  toelettatura:function(){return '<ellipse cx="24" cy="30" rx="7.6" ry="6.2" fill="var(--c1)"/><ellipse cx="14.5" cy="23.5" rx="3" ry="4" transform="rotate(-22 14.5 23.5)" fill="var(--c1)"/><ellipse cx="20" cy="16.5" rx="3" ry="4.2" fill="var(--c1)"/><ellipse cx="28" cy="16.5" rx="3" ry="4.2" fill="var(--c1)"/><ellipse cx="33.5" cy="23.5" rx="3" ry="4" transform="rotate(22 33.5 23.5)" fill="var(--c1)"/>';},
  vestiti:function(){return '<path d="M17 13l-7.5 5.2 3.7 5.3 3-2.1V35h15.6V21.4l3 2.1 3.7-5.3L31 13c-1 2.6-3.2 3.7-7 3.7S18 15.6 17 13z" fill="var(--c1)"/><path d="M19 13.4c1.2 2 3 2.8 5 2.8s3.8-.8 5-2.8" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>';},
  cover:function(){return '<rect x="15.5" y="9" width="17" height="30" rx="4" fill="var(--c1)"/><rect x="18" y="11.5" width="12" height="25" rx="2.5" fill="none" stroke="#fff" stroke-width="1.4" opacity=".7"/><rect x="18.5" y="13" width="7.5" height="7.5" rx="2" fill="#fff" opacity=".85"/><circle cx="21" cy="15.5" r="1.3" fill="#2b2b33"/><circle cx="24" cy="18" r="1.1" fill="#2b2b33"/><path d="M26.5 30.5l1.6 1.6 3-3.4" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';},
+ gioielleria:function(){return '<path d="M16 15h16l5 7-13 15L11 22z" fill="var(--c1)"/><path d="M11 22h26M19 15l-3 7 8 15 8-15-3-7" fill="none" stroke="#fff" stroke-width="1.5" stroke-linejoin="round" opacity=".85"/><path d="M16 15l3 7h10l3-7z" fill="#fff" opacity=".35"/>';},
  kebab:function(){return '<path d="M11.5 32a12.5 12.5 0 0125 0z" fill="#e8c07a"/><path d="M14.5 27c2.2-2.6 3.8 1.6 6.4 0s3.8 2 6.4 0 3.8 1.6 6.2 0" fill="none" stroke="#6fae3f" stroke-width="2.8" stroke-linecap="round"/><circle cx="19" cy="23" r="2.2" fill="#d84343"/><circle cx="28.5" cy="23" r="2.2" fill="#d84343"/><rect x="13" y="31" width="22" height="4" rx="2" fill="#8a4b24"/>';}
 };
 function stampFor(k){return '<svg class="st" viewBox="0 0 48 48" aria-hidden="true"><circle class="d" cx="24" cy="24" r="22"/><circle class="r" cx="24" cy="24" r="17.5"/>'+(GL[k]?GL[k]():'<path class="s" d="'+STAR+'"/>')+'</svg>';}
