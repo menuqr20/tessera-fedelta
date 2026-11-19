@@ -360,7 +360,12 @@ var THEMES={
   ambra:{n:'Ambra',b:'#b87408',c1:'#c98a1a',c2:'#6e4608',g:'#fff1b8'},
   smeraldo:{n:'Smeraldo',b:'#0c8a62',c1:'#0c8a62',c2:'#064d3a',g:'#ffd166'},
   ciano:{n:'Ciano',b:'#0b7bb5',c1:'#0b7bb5',c2:'#064a73',g:'#ffe08a'},
-  corallo:{n:'Corallo',b:'#e8472a',c1:'#ff5a3c',c2:'#c42b14',g:'#ffe3a0'}
+  corallo:{n:'Corallo',b:'#e8472a',c1:'#ff5a3c',c2:'#c42b14',g:'#ffe3a0'},
+  salvia:{n:'Salvia',b:'#4a7c3a',c1:'#5a8f3e',c2:'#2b4a1f',g:'#f4d98a'},
+  terracotta:{n:'Terracotta',b:'#b5532f',c1:'#c4623a',c2:'#6e2c14',g:'#ffd9a0'},
+  bordeaux:{n:'Bordeaux',b:'#8b1e3f',c1:'#8b1e3f',c2:'#3f0a1c',g:'#f2c879'},
+  notte:{n:'Notte',b:'#2b3a67',c1:'#34457a',c2:'#0f1530',g:'#ffc857'},
+  menta:{n:'Menta',b:'#19a38a',c1:'#1fb89c',c2:'#0b6656',g:'#ffe3a0'}
 };
 var ICONS={
   scissors:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',
@@ -379,7 +384,18 @@ var ICONS={
   tire:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 3v5M12 16v5M3 12h5M16 12h5"/>',
   shirt:'<path d="M8 3l-5 3 2.5 4 2.5-1.5V21h10V8.5L20.5 10 23 6l-5-3c-.8 1.7-2.4 2.5-4 2.5S8.8 4.7 8 3z"/>',
   wrap:'<path d="M3 17a9 9 0 0118 0z"/><path d="M6 13c1.5-2 3 1 4.5-.5S13 14 15 12.5s2.5 1.5 3.5 0"/>',
-  paw:'<circle cx="6" cy="10" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14" cy="6" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M12 12c-3 0-5 3-5 5a2.5 2.5 0 003 2.5c1-.4 1.5-.5 2-.5s1 .1 2 .5a2.5 2.5 0 003-2.5c0-2-2-5-5-5z"/>'
+  paw:'<circle cx="6" cy="10" r="1.8"/><circle cx="10" cy="6" r="1.8"/><circle cx="14" cy="6" r="1.8"/><circle cx="18" cy="10" r="1.8"/><path d="M12 12c-3 0-5 3-5 5a2.5 2.5 0 003 2.5c1-.4 1.5-.5 2-.5s1 .1 2 .5a2.5 2.5 0 003-2.5c0-2-2-5-5-5z"/>',
+  plant:'<path d="M12 17v-7"/><path d="M12 12C12 8 9.5 5.5 5.5 5.5c0 4 2.5 6.5 6.5 6.5z"/><path d="M12 14.5c0-3 2.3-5 5.8-5 0 3-2.3 5-5.8 5z"/><path d="M7 17h10l-1.2 4H8.2z"/>',
+  lamp:'<path d="M8 3h8l3 9H5z"/><path d="M12 12v8M8 21h8"/>',
+  hammer:'<rect x="9.5" y="7" width="11" height="4.5" rx="1" transform="rotate(45 15 9.25)"/><path d="M13.4 10.8L4.5 19.7"/>',
+  icecream:'<path d="M7.5 11L12 22l4.5-11"/><path d="M6 11a6 6 0 0112 0z"/><path d="M12 2.5v.01"/>',
+  steak:'<path d="M4 12c0-4 4-7 9-7 5 0 7 3 7 6s-3 8-9 8c-5 0-7-3-7-7z"/><circle cx="14.5" cy="11" r="2.2"/><path d="M8 13c.5 1.5 1.5 2.5 3 3"/>',
+  apple:'<path d="M12 8c-2-1.6-7-1-7 4.2C5 16.5 8 21 10 21c1 0 1.2-.5 2-.5s1 .5 2 .5c2 0 5-4.5 5-8.8C19 7 14 6.4 12 8z"/><path d="M12 8c0-2 1-3.5 3-4.5"/>',
+  wine:'<path d="M8 3h8v6a4 4 0 01-8 0z"/><path d="M12 13v8M8 21h8M8 7h8"/>',
+  book:'<path d="M5 4h13a1 1 0 011 1v14H7a2 2 0 00-2 2z"/><path d="M5 21V4M9 8h6"/>',
+  glasses:'<circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M10 14h4M2 14l1.5-6M22 14l-1.5-6"/>',
+  wrench:'<path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/>',
+  perfume:'<circle cx="12" cy="15" r="6"/><path d="M10 9.2V6.5h4v2.7M9 3h6v3.5H9z"/><path d="M9.5 15a2.5 2.5 0 012.5-2.5"/>'
 };
 var TRADES=[
  {k:'barbiere',label:'Barbiere',ico:'scissors',name:'Barber Rocco',pitch:'Dalla poltrona al cliente fisso.',words:'Ogni taglio lascia il segno.',mark:'segno',lead:'Registrati, mostra la card in poltrona e ottieni un tassello a ogni taglio.',reward:'Un taglio in omaggio',slots:10,theme:'grafite'},
@@ -398,7 +414,18 @@ var TRADES=[
  {k:'gommista',label:'Gommista',ico:'tire',name:'Gomme Express',pitch:'Dal cambio gomme al cliente fisso.',words:'Ogni stagione un vantaggio in più.',mark:'vantaggio',lead:'Cambi gomme, equilibrature, revisioni: ogni intervento vale un tassello.',reward:'Equilibratura gratuita',slots:6,theme:'grafite'},
  {k:'vestiti',label:'Negozio vestiti',ico:'shirt',name:'Boutique Luna',pitch:'Dal camerino al cliente fisso.',words:'Ogni acquisto ti veste di vantaggi.',mark:'vantaggi',lead:'Mostra la card in cassa: ogni acquisto aggiunge un tassello. Al completamento, un buono è in regalo.',reward:'Buono da 20 € in negozio',slots:10,theme:'corallo'},
  {k:'kebab',label:'Kebab',ico:'wrap',name:'Kebab Istanbul',pitch:'Dal kebab al cliente fisso.',words:'Il decimo kebab lo offriamo noi.',mark:'decimo',lead:'Al banco o da asporto: un tassello a ogni kebab. Quando la card è piena, il prossimo è gratis.',reward:'Kebab in omaggio',slots:8,theme:'ambra'},
- {k:'toelettatura',label:'Toelettatura',ico:'paw',name:'Zampa Felice',pitch:'Dal bagnetto al cliente fisso.',words:'Ogni coccola vale un tassello.',mark:'coccola',lead:'Il tuo amico a quattro zampe merita un premio. Un tassello a ogni visita.',reward:'Un bagnetto in omaggio',slots:8,theme:'prugna'}
+ {k:'toelettatura',label:'Toelettatura',ico:'paw',name:'Zampa Felice',pitch:'Dal bagnetto al cliente fisso.',words:'Ogni coccola vale un tassello.',mark:'coccola',lead:'Il tuo amico a quattro zampe merita un premio. Un tassello a ogni visita.',reward:'Un bagnetto in omaggio',slots:8,theme:'prugna'},
+ {k:'vivaio',label:'Vivaio',ico:'plant',name:'Vivaio Il Giardino',pitch:'Dalla piantina al cliente fisso.',words:'Ogni pianta mette radici nel tuo premio.',mark:'radici',lead:'Piante, vasi e terricci: ogni acquisto aggiunge un tassello alla tua card.',reward:'Una pianta aromatica in omaggio',slots:10,theme:'salvia'},
+ {k:'casalinghi',label:'Casalinghi',ico:'lamp',name:'Casa Mia Store',pitch:'Dalla pentola al cliente fisso.',words:'Ogni acquisto rende la casa più bella.',mark:'bella',lead:'Pentole, utensili, decori e piccole idee per la casa: un tassello a ogni acquisto.',reward:'Buono da 10 € per la casa',slots:10,theme:'terracotta'},
+ {k:'ferramenta',label:'Ferramenta',ico:'hammer',name:'Ferramenta Bruno',pitch:'Dal chiodo al cliente fisso.',words:'Ogni lavoro ben fatto ti premia.',mark:'premia',lead:'Viti, attrezzi e fai da te: ogni acquisto vale un tassello.',reward:'Set di punte in omaggio',slots:10,theme:'ambra'},
+ {k:'gelateria',label:'Gelateria',ico:'icecream',name:'Gelateria Nuvola',pitch:'Dal cono al cliente fisso.',words:'Il decimo gelato è un regalo.',mark:'regalo',lead:'Coni, coppette e torte gelato: ogni gelato aggiunge un tassello.',reward:'Un cono grande in omaggio',slots:10,theme:'menta'},
+ {k:'macelleria',label:'Macelleria',ico:'steak',name:'Macelleria Greco',pitch:'Dal banco al cliente fisso.',words:'Ogni spesa vale un tassello.',mark:'tassello',lead:'Carne scelta e salumi: a ogni spesa un tassello sulla tua card.',reward:'Un vassoio per la griglia',slots:10,theme:'rosso'},
+ {k:'ortofrutta',label:'Ortofrutta',ico:'apple',name:'Ortofrutta Da Nino',pitch:'Dalla cassetta al cliente fisso.',words:'Ogni spesa fresca porta un premio.',mark:'fresca',lead:'Frutta e verdura di stagione: un tassello a ogni spesa.',reward:'Una cassetta di frutta di stagione',slots:10,theme:'smeraldo'},
+ {k:'enoteca',label:'Enoteca',ico:'wine',name:'Enoteca Il Calice',pitch:'Dalla bottiglia al cliente fisso.',words:'Ogni bottiglia merita un brindisi.',mark:'brindisi',lead:'Vini, birre e distillati scelti: ogni acquisto aggiunge un tassello. Al completamento si brinda.',reward:'Una bottiglia selezionata',slots:8,theme:'bordeaux'},
+ {k:'libreria',label:'Libreria',ico:'book',name:'Libreria Il Segnalibro',pitch:'Dalla pagina al cliente fisso.',words:'Ogni libro ti avvicina al prossimo.',mark:'prossimo',lead:'Romanzi, fumetti e cartoleria: ogni acquisto aggiunge un tassello.',reward:'Buono da 10 € in libreria',slots:10,theme:'notte'},
+ {k:'ottico',label:'Ottico',ico:'glasses',name:'Ottica Vista Chiara',pitch:'Dalla lente al cliente fisso.',words:'Ogni visita ti fa vedere meglio.',mark:'meglio',lead:'Occhiali, lenti a contatto e controlli: ogni acquisto vale un tassello.',reward:'Kit pulizia lenti in omaggio',slots:6,theme:'cobalto'},
+ {k:'officina',label:'Officina',ico:'wrench',name:'Officina Di Stefano',pitch:'Dal tagliando al cliente fisso.',words:'Ogni tagliando ti porta più lontano.',mark:'lontano',lead:'Tagliandi, riparazioni e controlli: ogni intervento vale un tassello.',reward:'Check-up gratuito del veicolo',slots:6,theme:'grafite'},
+ {k:'profumeria',label:'Profumeria',ico:'perfume',name:'Profumeria Essenza',pitch:'Dalla fragranza al cliente fisso.',words:'Ogni profumo lascia una scia.',mark:'scia',lead:'Profumi, trucco e cura della pelle: ogni acquisto aggiunge un tassello.',reward:'Un mini profumo in omaggio',slots:10,theme:'prugna'}
 ];
 var CODE_AL='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function mkCode(){var c='TS-';for(var i=0;i<8;i++)c+=CODE_AL.charAt(Math.floor(Math.random()*CODE_AL.length));return c;}
